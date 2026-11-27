@@ -8,8 +8,8 @@ let products = [
   {id:7,name:"Peça Essencial",category:"Moda Casual e Social",price:109.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"AQ",stock:4},
   {id:8,name:"Coleção Movimento",category:"Moda Fitness",price:139.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:2}
 ];
-const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]"));
-const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]"));
+const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]").map(([id,qty])=>[String(id),qty]));
+const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]").map(String));
 const money = value => value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const grid = document.getElementById("productGrid");
 const toast = document.getElementById("toast");
@@ -19,7 +19,7 @@ let searchTerm = "";
 function notify(message){toast.textContent=message;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),2300)}
 function renderProducts(){
   const visible=products.filter(p=>(activeFilter==="Todos"||p.type===activeFilter)&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
-  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">${p.image_url?`<img src="${p.image_url}" alt="${p.name}" loading="lazy">`:"AQ"}</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(p.id)?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${p.stock}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
+  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">${p.image_url?`<img src="${p.image_url}" alt="${p.name}" loading="lazy">`:"AQ"}</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${p.stock}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
@@ -66,9 +66,9 @@ checkoutForm.addEventListener("submit",e=>{
   const safe=value=>String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean);
   document.getElementById("checkoutCustomerSummary").innerHTML=`<div class="customer-summary-grid"><div><small>Nome</small><strong>${safe(data.name)}</strong></div><div><small>E-mail</small><strong>${safe(data.email)}</strong></div><div><small>Telefone</small><strong>${safe(data.phone)}</strong></div><div class="customer-address"><small>Endereço de entrega</small><strong>${address.map(safe).join("<br>")}</strong></div></div>`;
-  const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>x.id===id);return {name:p.name,qty,unit:p.price,total:p.price*qty};});
-  const subtotal=orderEntries.reduce((sum,item)=>sum+item.total,0);
-  document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${orderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
+  const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return null;return {name:p.name,qty,unit:p.price,total:p.price*qty};});
+  const validOrderEntries=orderEntries.filter(Boolean);\n  const subtotal=validOrderEntries.reduce((sum,item)=>sum+item.total,0);
+  document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${validOrderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
   document.getElementById("customerStep").hidden=true;
   document.getElementById("reviewStep").hidden=false;
   document.getElementById("stepCustomer").classList.remove("active");
