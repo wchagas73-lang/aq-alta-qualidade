@@ -1,4 +1,13 @@
 let products = [];
+const demoProducts = [
+  {id:"demo-001",name:"Conjunto Fitness Essential",slug:"conjunto-fitness-essential",category:"Moda Fitness",price:189.90,compare_at_price:229.90,promo_ends_at:"2027-12-31T23:59:00-03:00",description:"Conjunto fitness demonstrativo, com proposta de conforto e liberdade de movimento. Produto, preço e disponibilidade fictícios para apresentação.",image_url:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=82",images:[],variants:[{name:"Tamanho",options:["P","M","G"]},{name:"Cor",options:["Preto","Grafite"]}],is_featured:true,is_hero_featured:true,hero_title:"Movimento com identidade.",hero_text:"Conheça a seleção fitness da AQ. Conteúdo e produto ilustrativos.",stock:12,type:"Destaques"},
+  {id:"demo-002",name:"Perfume Signature",slug:"perfume-signature",category:"Perfumes",price:159.90,compare_at_price:null,description:"Fragrância demonstrativa para apresentar a página de produto e sua galeria.",image_url:"https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=900&q=82",images:[],variants:[],is_featured:true,is_hero_featured:true,hero_title:"Detalhes que deixam presença.",hero_text:"Uma vitrine para destacar lançamentos e escolhas da loja.",stock:8,type:"Destaques"},
+  {id:"demo-003",name:"Whey Protein 900 g",slug:"whey-protein-900g",category:"Suplementos",price:119.90,compare_at_price:139.90,promo_ends_at:"2027-12-31T23:59:00-03:00",description:"Produto demonstrativo. Informações nutricionais, marca, composição e disponibilidade reais deverão ser cadastradas pela loja.",image_url:"https://images.unsplash.com/photo-1579758629938-03607ccdbaba?auto=format&fit=crop&w=900&q=82",images:[],variants:[],is_featured:false,is_hero_featured:true,hero_title:"Sua rotina, seu ritmo.",hero_text:"Demonstração de banner promocional com produto em destaque.",stock:15,type:"Novidades"},
+  {id:"demo-004",name:"Camisa Casual Premium",slug:"camisa-casual-premium",category:"Moda Casual e Social",price:149.90,compare_at_price:null,description:"Peça demonstrativa para mostrar detalhes, preço, seleção de tamanho e experiência de compra.",image_url:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=900&q=82",images:[],variants:[{name:"Tamanho",options:["P","M","G","GG"]},{name:"Cor",options:["Preto","Branco"]}],is_featured:false,is_hero_featured:false,stock:10,type:"Novidades"},
+  {id:"demo-005",name:"Relógio Minimal",slug:"relogio-minimal",category:"Acessórios",price:99.90,compare_at_price:null,description:"Acessório ilustrativo para apresentar a vitrine e o carrinho.",image_url:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=82",images:[],variants:[],is_featured:false,is_hero_featured:false,stock:6,type:"Novidades"},
+  {id:"demo-006",name:"Tênis Urban",slug:"tenis-urban",category:"Bem-estar",price:219.90,compare_at_price:null,description:"Imagem e produto demonstrativos. Cadastro comercial oficial será fornecido pela loja.",image_url:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=82",images:[],variants:[{name:"Tamanho",options:["38","39","40","41","42"]}],is_featured:false,is_hero_featured:false,stock:9,type:"Novidades"}
+];
+function useDemoCatalog(){products=demoProducts.map(product=>({...product}));realCatalogConnected=false;renderProducts();renderCart();}
 function readStoredArray(key){
   try {
     const value = JSON.parse(localStorage.getItem(key) || "[]");
@@ -209,7 +218,7 @@ if("IntersectionObserver" in window){const observer=new IntersectionObserver(ent
 
 async function loadAQCatalog() {
   const config = window.AQ_SUPABASE_CONFIG || {};
-  if (!config.url || !config.publishableKey || !window.supabase?.createClient) { renderProducts(); renderCart(); return; }
+  if (!config.url || !config.publishableKey || !window.supabase?.createClient) { useDemoCatalog(); return; }
   try {
     const client = window.supabase.createClient(config.url, config.publishableKey);
     const [{data:items,error:productsError},{data:cats,error:categoriesError}] = await Promise.all([
@@ -233,7 +242,7 @@ async function loadAQCatalog() {
     // Carrinhos podem armazenar a variante no sufixo "::..."; validar pelo ID base.
     for (const id of [...cart.keys()]) if (!validIds.has(cartProductId(id))) cart.delete(id);
     for (const id of [...wishlist]) if (!validIds.has(String(id))) wishlist.delete(id);
-    if (!products.length) renderProducts();
+    if (!products.length) useDemoCatalog();
     else renderProducts();
     if (cats?.length) {
       const categoryGrid = document.querySelector(".category-grid");
