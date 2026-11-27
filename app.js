@@ -108,7 +108,8 @@ async function loadAQCatalog() {
     }));
     const validIds = new Set(products.map(p => String(p.id)));
     for (const id of [...cart.keys()]) if (!validIds.has(String(id))) cart.delete(id);
-    for (const id of [...wishlist]) if (!validIds.has(String(id))) wishlist.delete(id);\n    if (!products.length) grid.innerHTML = '<p class="empty-cart">Nosso catálogo está sendo atualizado. Em breve, novos produtos estarão disponíveis.</p>';
+    for (const id of [...wishlist]) if (!validIds.has(String(id))) wishlist.delete(id);
+    if (!products.length) grid.innerHTML = '<p class="empty-cart">Nosso catálogo está sendo atualizado. Em breve, novos produtos estarão disponíveis.</p>';
     else renderProducts();
     if (cats?.length) {
       document.querySelectorAll("[data-category]").forEach(card => {
