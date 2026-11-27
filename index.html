@@ -61,7 +61,43 @@
   </main>
   <footer class="footer"><a class="brand footer-brand" href="#"><img src="assets/aq-logo.svg" alt="AQ Alta Qualidade" class="footer-logo"></a><div><strong>Explore</strong><a href="#categorias">Categorias</a><a href="#destaques">Destaques</a><a href="#sobre">Sobre a AQ</a></div><div><strong>Atendimento</strong><span>Informações comerciais em atualização</span><span>Redes sociais em breve</span></div><div class="footer-bottom">© <span id="year"></span> AQ Alta Qualidade. Todos os direitos reservados. <small>Loja em fase de preparação.</small></div></footer>
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="cartDrawer" aria-label="Carrinho de compras"><div class="drawer-head"><h3>Seu carrinho</h3><button id="cartClose" aria-label="Fechar">×</button></div><div id="cartItems" class="cart-items"><p class="empty-cart">Sua sacola está vazia.</p></div><div class="drawer-foot"><div class="shipping-progress"><div class="shipping-copy"><span id="shippingMessage">Adicione produtos ao carrinho.</span><strong id="shippingPercent">0%</strong></div><div class="progress-track"><span id="shippingProgress"></span></div><small>Meta ilustrativa de frete grátis: R$ 199,00. Condição a confirmar com a loja.</small></div><div class="subtotal"><span>Subtotal demonstrativo</span><strong id="cartSubtotal">R$ 0,00</strong></div><button class="gold-button full" id="checkoutBtn">Continuar <span>↗</span></button><small>Finalização de compra indisponível nesta versão de demonstração.</small></div></aside>
+  <aside class="drawer" id="cartDrawer" aria-label="Carrinho de compras"><div class="drawer-head"><h3>Seu carrinho</h3><button id="cartClose" aria-label="Fechar">×</button></div><div id="cartItems" class="cart-items"><p class="empty-cart">Sua sacola está vazia.</p></div><div class="drawer-foot"><div class="subtotal"><span>Subtotal</span><strong id="cartSubtotal">R$ 0,00</strong></div><button class="gold-button full" id="checkoutBtn">Continuar para identificação <span>↗</span></button><small>Frete, descontos e pagamento serão apresentados após as respectivas integrações e configurações comerciais.</small></div></aside>
+  <section class="checkout-overlay" id="checkoutOverlay" aria-hidden="true">
+    <div class="checkout-panel" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <div class="checkout-head"><div><span class="eyebrow">AQ ALTA QUALIDADE</span><h2 id="checkoutTitle">Finalizar pedido</h2></div><button type="button" id="checkoutClose" aria-label="Fechar checkout">×</button></div>
+      <div class="checkout-steps"><span class="active" id="stepCustomer">1. Identificação</span><span id="stepReview">2. Revisão</span></div>
+      <form id="checkoutForm" class="checkout-form">
+        <div id="customerStep">
+          <h3>Seus dados</h3>
+          <div class="checkout-fields">
+            <label>Nome completo<input name="name" autocomplete="name" required maxlength="100" placeholder="Seu nome"></label>
+            <label>E-mail<input name="email" type="email" autocomplete="email" required maxlength="120" placeholder="voce@email.com"></label>
+            <label>WhatsApp / telefone<input name="phone" type="tel" autocomplete="tel" required maxlength="20" placeholder="(00) 00000-0000"></label>
+          </div>
+          <h3>Endereço de entrega</h3>
+          <div class="checkout-fields">
+            <label>CEP<input name="postalCode" inputmode="numeric" autocomplete="postal-code" required maxlength="9" placeholder="00000-000"></label>
+            <label>Rua / avenida<input name="street" autocomplete="address-line1" required maxlength="120" placeholder="Nome da rua"></label>
+            <label>Número<input name="number" required maxlength="12" placeholder="Número"></label>
+            <label>Complemento <small>(opcional)</small><input name="complement" autocomplete="address-line2" maxlength="80" placeholder="Apartamento, bloco..."></label>
+            <label>Bairro<input name="district" required maxlength="80" placeholder="Bairro"></label>
+            <label>Cidade<input name="city" autocomplete="address-level2" required maxlength="80" placeholder="Cidade"></label>
+            <label>Estado<input name="state" autocomplete="address-level1" required maxlength="2" placeholder="UF"></label>
+          </div>
+          <p class="checkout-notice">Nesta etapa, o endereço será coletado para preparar a consulta de frete. O valor e o prazo ainda dependem da integração com a transportadora ou plataforma de entrega.</p>
+          <button class="gold-button full" type="submit">Revisar dados e pedido <span>↗</span></button>
+        </div>
+        <div id="reviewStep" hidden>
+          <h3>Confira seus dados</h3>
+          <div id="checkoutCustomerSummary" class="checkout-summary"></div>
+          <h3>Resumo dos produtos</h3>
+          <div id="checkoutOrderSummary" class="checkout-summary"></div>
+          <p class="checkout-notice">Este checkout ainda não recebe pagamentos nem registra pedidos. A conclusão da compra será habilitada após as integrações de pagamento e entrega.</p>
+          <div class="checkout-actions"><button class="outline-button" type="button" id="checkoutBack">Voltar e editar</button><button class="gold-button" type="button" id="checkoutPending">Entendi</button></div>
+        </div>
+      </form>
+    </div>
+  </section>
   <div class="toast" id="toast" role="status"></div>
   <script src="app.js"></script>
 </body>
