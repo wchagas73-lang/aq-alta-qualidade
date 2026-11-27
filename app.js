@@ -1,15 +1,6 @@
-let products = [
-  {id:1,name:"Conjunto Performance",category:"Moda Fitness",price:129.90,tag:"DESTAQUE",type:"Destaques",symbol:"AQ",stock:5},
-  {id:2,name:"Essência Intensa",category:"Perfumes",price:89.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:4},
-  {id:3,name:"Linha Energia",category:"Suplementos",price:99.90,tag:"DESTAQUE",type:"Destaques",symbol:"＋",stock:2},
-  {id:4,name:"Camisa Urban",category:"Moda Casual e Social",price:119.90,tag:"NOVIDADE",type:"Novidades",symbol:"AQ",stock:7},
-  {id:5,name:"Acessório Clássico",category:"Acessórios",price:59.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"◇",stock:3},
-  {id:6,name:"Kit Bem-estar",category:"Bem-estar",price:74.90,tag:"NOVIDADE",type:"Novidades",symbol:"♡",stock:6},
-  {id:7,name:"Peça Essencial",category:"Moda Casual e Social",price:109.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"AQ",stock:4},
-  {id:8,name:"Coleção Movimento",category:"Moda Fitness",price:139.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:2}
-];
-const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]").map(([id,qty])=>[String(id),qty]));
-const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]").map(String));
+let products = [];
+const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]").filter(([id])=>!/^\\d+$/.test(String(id))).map(([id,qty])=>[String(id),qty]));
+const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]").filter(id=>!/^\\d+$/.test(String(id))).map(String));
 const money = value => value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const cartProductId = key => String(key).split("::")[0];
 const cartVariantLabel = key => {try{return JSON.parse(decodeURIComponent(String(key).split("::")[1]||"{}"));}catch{return {};}};
@@ -34,7 +25,7 @@ function renderProducts(){
     const id=escapeHTML(p.id),name=escapeHTML(p.name),category=escapeHTML(p.category),tag=escapeHTML(p.tag);
     const image=safeImageURL(p.image_url);
     return `<article class="product-card" data-product-open="${id}"><div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span><span class="product-tag">${tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3><div class="product-price">${money(Number(p.price)||0)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<div class="product-actions"><button class="detail-link" type="button" data-detail="${id}">Ver detalhes</button><button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name}" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></div></article>`
-  }).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
+  }).join(""):'<div class="catalog-empty"><span class="eyebrow">AQ / CATÁLOGO</span><h3>Produtos em preparação</h3><p>Os produtos serão apresentados aqui assim que o catálogo oficial for cadastrado.</p></div>';
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
@@ -67,15 +58,9 @@ function closeCart(){drawer.classList.remove("open");backdrop.classList.remove("
 document.getElementById("cartToggle").addEventListener("click",openCart);
 document.getElementById("cartClose").addEventListener("click",closeCart);
 backdrop.addEventListener("click",closeCart);
-const checkoutOverlay=document.getElementById("checkoutOverlay");
-const checkoutForm=document.getElementById("checkoutForm");
-function closeCheckout(){checkoutOverlay.classList.remove("open");checkoutOverlay.setAttribute("aria-hidden","true");}
-document.getElementById("checkoutBtn").addEventListener("click",()=>{
-  if(!cart.size){notify("Adicione pelo menos um produto para continuar.");return;}
-  checkoutOverlay.classList.add("open");checkoutOverlay.setAttribute("aria-hidden","false");closeCart();
-});
-document.getElementById("checkoutClose").addEventListener("click",closeCheckout);
-checkoutOverlay.addEventListener("click",e=>{if(e.target===checkoutOverlay)closeCheckout();});
+const checkoutBtn=document.getElementById("checkoutBtn");
+checkoutBtn.addEventListener("click",()=>notify("A finalização será habilitada quando pagamentos e entregas estiverem configurados."));
+/* Checkout permanece desabilitado até existir integração segura de pedidos, pagamento e frete.
 checkoutForm.addEventListener("submit",e=>{
   e.preventDefault();
   if(!checkoutForm.reportValidity())return;
@@ -99,7 +84,7 @@ document.getElementById("checkoutBack").addEventListener("click",()=>{
   document.getElementById("stepCustomer").classList.add("active");
 });
 document.getElementById("checkoutPending").addEventListener("click",()=>notify("Dados revisados. A compra será habilitada após as integrações."));
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&checkoutOverlay.classList.contains("open"))closeCheckout();});
+*/
 document.getElementById("wishlistToggle").addEventListener("click",()=>{activeFilter="Todos";searchTerm="";renderProducts();document.getElementById("destaques").scrollIntoView({behavior:"smooth"});notify(wishlist.size?wishlist.size+" produto(s) favoritado(s).":"Sua lista de favoritos está vazia.")});
 document.getElementById("menuToggle").addEventListener("click",()=>{const nav=document.getElementById("mainNav");nav.classList.toggle("open");document.getElementById("menuToggle").setAttribute("aria-expanded",nav.classList.contains("open"))});
 document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mainNav").classList.remove("open")));
@@ -169,7 +154,7 @@ if("IntersectionObserver" in window){const observer=new IntersectionObserver(ent
 
 async function loadAQCatalog() {
   const config = window.AQ_SUPABASE_CONFIG || {};
-  if (!config.url || !config.publishableKey || !window.supabase?.createClient) return;
+  if (!config.url || !config.publishableKey || !window.supabase?.createClient) { renderProducts(); renderCart(); return; }
   try {
     const client = window.supabase.createClient(config.url, config.publishableKey);
     const [{data:items,error:productsError},{data:cats,error:categoriesError}] = await Promise.all([
@@ -187,7 +172,7 @@ async function loadAQCatalog() {
     const validIds = new Set(products.map(p => String(p.id)));
     for (const id of [...cart.keys()]) if (!validIds.has(String(id))) cart.delete(id);
     for (const id of [...wishlist]) if (!validIds.has(String(id))) wishlist.delete(id);
-    if (!products.length) grid.innerHTML = '<p class="empty-cart">Nosso catálogo está sendo atualizado. Em breve, novos produtos estarão disponíveis.</p>';
+    if (!products.length) renderProducts();
     else renderProducts();
     if (cats?.length) {
       const categoryGrid = document.querySelector(".category-grid");
