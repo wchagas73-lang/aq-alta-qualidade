@@ -215,6 +215,7 @@ async function productDialog(id = null) {
     selectField("Categoria","category_id",categoryOptions,p.category_id || "") +
     field("Preço (R$)","price","number",p.price ?? "",'required min="0" step="0.01"') +
     field("Preço anterior (maior que o atual para promoção)","compare_at_price","number",p.compare_at_price ?? "",'min="0" step="0.01"') +
+    field("Fim da promoção (data e hora)","promo_ends_at","datetime-local",p.promo_ends_at ? new Date(new Date(p.promo_ends_at).getTime()-new Date(p.promo_ends_at).getTimezoneOffset()*60000).toISOString().slice(0,16) : "",'') +
     field("Quantidade em estoque","stock_quantity","number",p.stock_quantity ?? 0,'required min="0" step="1"') +
     field("Alerta de estoque baixo","low_stock_threshold","number",p.low_stock_threshold ?? 5,'required min="0" step="1"') +
     field("Peso para frete (gramas)","weight_grams","number",p.weight_grams ?? "",'min="1" step="1"') +
@@ -227,7 +228,10 @@ async function productDialog(id = null) {
     `<label class="full">Descrição<textarea name="description" maxlength="4000">${esc(p.description || "")}</textarea></label>` +
     selectField("Visibilidade","is_active", [["false","Rascunho / oculto"],["true","Publicado"]],String(p.is_active ?? false)) +
     selectField("Destaque na vitrine","is_featured",[["false","Não"],["true","Sim"]],String(p.is_featured ?? false)) +
-    '<p class="full data-note">Para criar uma oferta, informe um preço anterior maior que o preço atual. O produto aparecerá automaticamente na seção Ofertas especiais. Marque Destaque na vitrine para incluí-lo também na seleção Em destaque. As imagens podem ser informadas por URL pública ou enviadas ao bucket aq-products do Supabase do proprietário.</p>');
+    selectField("Mostrar no banner principal","is_hero_featured",[["false","Não"],["true","Sim"]],String(p.is_hero_featured ?? false)) +
+    field("Título do banner (opcional)","hero_title","text",p.hero_title || "",'maxlength="100"') +
+    field("Texto do banner (opcional)","hero_text","text",p.hero_text || "",'maxlength="220"') +
+    '<p class="full data-note">Para criar uma oferta, informe um preço anterior maior que o preço atual. O produto aparecerá automaticamente em Ofertas especiais. Defina data e hora para exibir o contador regressivo. Marque Destaque na vitrine para a seleção Em destaque. Marque Mostrar no banner principal para incluí-lo no carrossel do topo; a foto do produto será usada no banner. As imagens podem ser informadas por URL pública ou enviadas ao bucket aq-products do Supabase do proprietário.</p>');
 }
 async function loadCategoryOptions() {
   const { data, error } = await supabase.from("categories").select("id,name,slug,is_active").order("name");
@@ -287,7 +291,7 @@ async function saveEntity(event) {
       try { variants = values.variants ? JSON.parse(values.variants) : []; }
       catch { throw new Error("O campo de variações precisa conter um JSON válido."); }
       if (!Array.isArray(variants)) throw new Error("Variações deve ser uma lista JSON.");
-      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), weight_grams:values.weight_grams === "" ? null : Number(values.weight_grams), package_length_cm:values.package_length_cm === "" ? null : Number(values.package_length_cm), package_width_cm:values.package_width_cm === "" ? null : Number(values.package_width_cm), package_height_cm:values.package_height_cm === "" ? null : Number(values.package_height_cm), image_url:imageUrl, variants, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", slug:slugify(values.name) };
+      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), weight_grams:values.weight_grams === "" ? null : Number(values.weight_grams), package_length_cm:values.package_length_cm === "" ? null : Number(values.package_length_cm), package_width_cm:values.package_width_cm === "" ? null : Number(values.package_width_cm), package_height_cm:values.package_height_cm === "" ? null : Number(values.package_height_cm), image_url:imageUrl, variants, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", is_hero_featured:values.is_hero_featured === "true", promo_ends_at:values.promo_ends_at ? new Date(values.promo_ends_at).toISOString() : null, hero_title:values.hero_title.trim() || null, hero_text:values.hero_text.trim() || null, slug:slugify(values.name) };
     } else if (currentEntity === "category") {
       table = "categories";
       payload = { name:values.name.trim(), slug:values.slug.trim(), sort_order:Number(values.sort_order || 0), is_active:values.is_active === "true" };
