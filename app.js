@@ -1,12 +1,12 @@
 const products = [
-  {id:1,name:"Conjunto Performance",category:"Moda Fitness",price:129.90,tag:"DESTAQUE",type:"Destaques",symbol:"AQ"},
-  {id:2,name:"Essência Intensa",category:"Perfumes",price:89.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧"},
-  {id:3,name:"Linha Energia",category:"Suplementos",price:99.90,tag:"DESTAQUE",type:"Destaques",symbol:"＋"},
-  {id:4,name:"Camisa Urban",category:"Moda Casual e Social",price:119.90,tag:"NOVIDADE",type:"Novidades",symbol:"AQ"},
-  {id:5,name:"Acessório Clássico",category:"Acessórios",price:59.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"◇"},
-  {id:6,name:"Kit Bem-estar",category:"Bem-estar",price:74.90,tag:"NOVIDADE",type:"Novidades",symbol:"♡"},
-  {id:7,name:"Peça Essencial",category:"Moda Casual e Social",price:109.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"AQ"},
-  {id:8,name:"Coleção Movimento",category:"Moda Fitness",price:139.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧"}
+  {id:1,name:"Conjunto Performance",category:"Moda Fitness",price:129.90,tag:"DESTAQUE",type:"Destaques",symbol:"AQ",stock:5},
+  {id:2,name:"Essência Intensa",category:"Perfumes",price:89.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:4},
+  {id:3,name:"Linha Energia",category:"Suplementos",price:99.90,tag:"DESTAQUE",type:"Destaques",symbol:"＋",stock:2},
+  {id:4,name:"Camisa Urban",category:"Moda Casual e Social",price:119.90,tag:"NOVIDADE",type:"Novidades",symbol:"AQ",stock:7},
+  {id:5,name:"Acessório Clássico",category:"Acessórios",price:59.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"◇",stock:3},
+  {id:6,name:"Kit Bem-estar",category:"Bem-estar",price:74.90,tag:"NOVIDADE",type:"Novidades",symbol:"♡",stock:6},
+  {id:7,name:"Peça Essencial",category:"Moda Casual e Social",price:109.90,tag:"SELEÇÃO AQ",type:"Destaques",symbol:"AQ",stock:4},
+  {id:8,name:"Coleção Movimento",category:"Moda Fitness",price:139.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:2}
 ];
 const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]"));
 const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]"));
@@ -18,19 +18,19 @@ let searchTerm = "";
 function notify(message){toast.textContent=message;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),2300)}
 function renderProducts(){
   const visible=products.filter(p=>(activeFilter==="Todos"||p.type===activeFilter)&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
-  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">AQ</span><span class="product-tag">${p.tag}</span><button class="quick-add" data-add="${p.id}">Adicionar à sacola +</button><button class="heart ${wishlist.has(p.id)?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div><small>Valor ilustrativo para demonstração</small><button class="add-cart" data-add="${p.id}">ADICIONAR À SACOLA +</button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
+  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">AQ</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(p.id)?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div><span class="stock-alert">Restam só ${p.stock}</span><small>Valor e estoque ilustrativos para demonstração</small><button class="add-cart" data-add="${p.id}">ADICIONAR AO CARRINHO +</button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
   document.getElementById("cartCount").textContent=count;
   document.getElementById("wishCount").textContent=wishlist.size;
   const lines=[...cart.entries()];
-  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>x.id===id);return `<div class="cart-line"><div><strong>${p.name}</strong><small>${money(p.price)} cada</small></div><div class="qty-controls"><button data-dec="${id}" aria-label="Diminuir">−</button><span>${qty}</span><button data-inc="${id}" aria-label="Aumentar">+</button></div></div>`}).join(""):'<p class="empty-cart">Sua sacola está vazia.</p>';
-  const subtotal=lines.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);document.getElementById("cartSubtotal").textContent=money(subtotal);const target=199,progress=Math.min(100,subtotal/target*100);document.getElementById("shippingProgress").style.width=progress+"%";document.getElementById("shippingPercent").textContent=Math.round(progress)+"%";document.getElementById("shippingMessage").textContent=subtotal===0?"Adicione produtos à sacola.":subtotal>=target?"Meta ilustrativa atingida!":`Faltam ${money(target-subtotal)} para a meta ilustrativa.`;localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
+  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>x.id===id);return `<div class="cart-line"><div><strong>${p.name}</strong><small>${money(p.price)} cada</small></div><div class="qty-controls"><button data-dec="${id}" aria-label="Diminuir">−</button><span>${qty}</span><button data-inc="${id}" aria-label="Aumentar">+</button></div></div>`}).join(""):'<p class="empty-cart">Sua carrinho está vazia.</p>';
+  const subtotal=lines.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);document.getElementById("cartSubtotal").textContent=money(subtotal);const target=199,progress=Math.min(100,subtotal/target*100);document.getElementById("shippingProgress").style.width=progress+"%";document.getElementById("shippingPercent").textContent=Math.round(progress)+"%";document.getElementById("shippingMessage").textContent=subtotal===0?"Adicione produtos ao carrinho.":subtotal>=target?"Meta ilustrativa atingida!":`Faltam ${money(target-subtotal)} para a meta ilustrativa.`;localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
 grid.addEventListener("click",e=>{
   const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");
-  if(add){const id=Number(add.dataset.add);cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado à sacola.");openCart();}
+  if(add){const id=Number(add.dataset.add);cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();}
   if(wish){const id=Number(wish.dataset.wish);wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
 });
 document.addEventListener("click",e=>{
