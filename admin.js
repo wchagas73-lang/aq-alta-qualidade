@@ -115,9 +115,11 @@ async function signOut() {
   setConnection(false, "Sessão encerrada");
 }
 async function loadOverview() {
+  const canOrders = roleCan(["orders"]);
+  const canCatalog = roleCan(["catalog"]);
   const [orders, products] = await Promise.all([
-    supabase.from("orders").select("id,order_number,customer_name,created_at,order_status,total").order("created_at", { ascending:false }).limit(8),
-    supabase.from("products").select("id,stock_quantity,low_stock_threshold,is_active")
+    canOrders ? supabase.from("orders").select("id,order_number,customer_name,created_at,order_status,total").order("created_at", { ascending:false }).limit(8) : Promise.resolve({data:[],error:null}),
+    canCatalog ? supabase.from("products").select("id,stock_quantity,low_stock_threshold,is_active") : Promise.resolve({data:[],error:null})
   ]);
   if (orders.error) throw orders.error;
   if (products.error) throw products.error;
@@ -221,7 +223,7 @@ async function categoryDialog(id = null) {
     field("Nome","name","text",c.name || "",'required maxlength="80"') +
     field("Slug (URL)","slug","text",c.slug || "",'required maxlength="100" pattern="[a-z0-9-]+"') +
     field("Ordem de exibição","sort_order","number",c.sort_order ?? 0,'min="0" step="1"') +
-    selectField("Status",[["true","Ativa"],["false","Oculta"]],String(c.is_active ?? true)));
+    selectField("Status","is_active",[["true","Ativa"],["false","Oculta"]],String(c.is_active ?? true)));
 }
 async function couponDialog(id = null) {
   let c = {};
