@@ -158,6 +158,9 @@ function renderProducts(){
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
   document.getElementById("cartCount").textContent=count;
+  const floatingCart=document.getElementById("floatingCart");
+  const floatingCartCount=document.getElementById("floatingCartCount");
+  if(floatingCart&&floatingCartCount){floatingCartCount.textContent=count;floatingCart.hidden=count===0;floatingCart.setAttribute("aria-hidden",String(count===0));}
   document.getElementById("wishCount").textContent=wishlist.size;
   const lines=[...cart.entries()];
   document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));if(!p)return "";const safeId=escapeHTML(id);const chosen=cartVariantLabel(id);const chosenText=Object.entries(chosen).map(([k,v])=>`${k}: ${v}`).join(" · ");return `<div class="cart-line"><div><strong>${escapeHTML(p.name)}</strong><small>${chosenText?escapeHTML(chosenText)+" · ":""}${money(Number(p.price)||0)} cada</small></div><div class="qty-controls"><button data-dec="${safeId}" aria-label="Diminuir quantidade de ${escapeHTML(p.name)}">−</button><span>${qty}</span><button data-inc="${safeId}" aria-label="Aumentar quantidade de ${escapeHTML(p.name)}">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
@@ -212,6 +215,38 @@ const drawer=document.getElementById("cartDrawer"),backdrop=document.getElementB
 function openCart(){drawer.classList.add("open");backdrop.classList.add("open")}
 function closeCart(){drawer.classList.remove("open");backdrop.classList.remove("open")}
 document.getElementById("cartToggle").addEventListener("click",openCart);
+const floatingCartButton=document.getElementById("floatingCart");
+if(floatingCartButton){
+  let dragStartX=0,dragStartY=0,cartStartX=0,cartStartY=0,cartDragging=false,cartPointerId=null;
+  floatingCartButton.addEventListener("pointerdown",event=>{
+    if(event.button!==undefined&&event.button!==0)return;
+    const rect=floatingCartButton.getBoundingClientRect();
+    dragStartX=event.clientX;dragStartY=event.clientY;cartStartX=rect.left;cartStartY=rect.top;cartDragging=false;cartPointerId=event.pointerId;
+    floatingCartButton.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  floatingCartButton.addEventListener("pointermove",event=>{
+    if(cartPointerId!==event.pointerId)return;
+    const dx=event.clientX-dragStartX,dy=event.clientY-dragStartY;
+    if(!cartDragging&&Math.hypot(dx,dy)>5){cartDragging=true;floatingCartButton.classList.add("is-dragging");}
+    if(cartDragging){
+      const maxX=Math.max(0,window.innerWidth-floatingCartButton.offsetWidth);
+      const maxY=Math.max(0,window.innerHeight-floatingCartButton.offsetHeight);
+      const left=Math.min(maxX,Math.max(0,cartStartX+dx));
+      const top=Math.min(maxY,Math.max(0,cartStartY+dy));
+      floatingCartButton.style.left=left+"px";floatingCartButton.style.top=top+"px";
+      floatingCartButton.style.right="auto";floatingCartButton.style.bottom="auto";
+    }
+  });
+  const finishFloatingCartDrag=event=>{
+    if(cartPointerId!==event.pointerId)return;
+    if(!cartDragging)openCart();
+    floatingCartButton.classList.remove("is-dragging");cartPointerId=null;
+  };
+  floatingCartButton.addEventListener("pointerup",finishFloatingCartDrag);
+  floatingCartButton.addEventListener("pointercancel",event=>{if(cartPointerId===event.pointerId){cartPointerId=null;cartDragging=false;floatingCartButton.classList.remove("is-dragging");}});
+  floatingCartButton.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();openCart();}});
+}
 document.getElementById("cartClose").addEventListener("click",closeCart);
 backdrop.addEventListener("click",closeCart);
 const checkoutBtn=document.getElementById("checkoutBtn");
