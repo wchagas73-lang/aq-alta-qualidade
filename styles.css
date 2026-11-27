@@ -633,3 +633,34 @@ html{scroll-behavior:smooth}
 }
 .hero-product-panel .promo-countdown-label,
 .hero-product-panel .promo-countdown time{color:#fff!important;text-shadow:0 2px 9px #000,0 1px 3px #000}
+
+
+/* AQ: selos e favoritos sem placas ou círculos sobre a mídia */
+.product-image .product-tag,
+.product-image .product-tag-sale,
+.product-image .product-tag-featured,
+.product-image .discount-badge{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  color:#fff!important;
+  text-shadow:0 1px 5px #000,0 1px 2px #000!important;
+}
+.product-image .heart{
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#fff!important;
+  font-size:25px!important;
+  line-height:1!important;
+  text-shadow:0 1px 5px #000,0 1px 2px #000!important;
+}
+.product-image .heart.active{color:#ff5470!important}
