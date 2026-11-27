@@ -484,3 +484,47 @@ button:disabled{cursor:not-allowed;opacity:.5}
  .hero-slide .hero-bottom{left:12px;right:12px;bottom:17px;font-size:7px}
  .catalog-tabs .tab{flex:1;padding:11px 8px;font-size:9px}
 }
+
+
+/* AQ: acabamento global de movimento, interação e acessibilidade */
+html{scroll-behavior:smooth}
+.hero-slide{transition:opacity .5s ease,visibility .5s ease}
+.hero-slide-product-image,
+.hero-slide-video-media{transform:scale(1.02);transition:transform 7s ease}
+.hero-slide.is-active .hero-slide-product-image,
+.hero-slide.is-active .hero-slide-video-media{transform:scale(1)}
+.product-image img{transition:transform .28s ease}
+.product-card:hover .product-image img{transform:scale(1.03)}
+.category-card,
+.product-card,
+.gold-button,
+.outline-button,
+.text-link,
+.hero-secondary-link,
+.add-cart,
+.quick-add,
+.icon-btn,
+.cart-btn,
+.heart,
+.tab,
+.catalog-tabs .tab,
+.hero-arrow,
+.hero-dot,
+.store-actions a{transition-property:color,background-color,border-color,box-shadow,filter,opacity,transform;transition-duration:.22s;transition-timing-function:ease}
+.gold-button:hover,.outline-button:hover,.add-cart:hover,.quick-add:hover{transform:translateY(-1px)}
+.gold-button:active,.outline-button:active,.add-cart:active,.quick-add:active{transform:scale(.985)}
+.hero-arrow:hover{border-color:var(--gold2);background:#c9a45c;color:#080808}
+.hero-dot:hover{background:var(--gold2)}
+.drawer{transition:right .25s ease}
+.drawer-backdrop{transition:opacity .25s ease}
+.toast{transition:opacity .2s ease,transform .2s ease}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .45s ease,transform .45s ease}
+.reveal.is-visible{opacity:1;transform:translateY(0)}
+:where(a,button,input,select,summary,[tabindex]):focus-visible{outline:2px solid #e5cb91;outline-offset:3px}
+@media(hover:none){.product-card:hover .product-image img{transform:none}.gold-button:hover,.outline-button:hover,.add-cart:hover,.quick-add:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+ .hero-slide-product-image,.hero-slide-video-media{transform:none!important}
+ .reveal{opacity:1;transform:none}
+}
