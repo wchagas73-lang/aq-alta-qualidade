@@ -60,31 +60,7 @@ document.getElementById("cartClose").addEventListener("click",closeCart);
 backdrop.addEventListener("click",closeCart);
 const checkoutBtn=document.getElementById("checkoutBtn");
 checkoutBtn.addEventListener("click",()=>notify("A finalização será habilitada quando pagamentos e entregas estiverem configurados."));
-/* Checkout permanece desabilitado até existir integração segura de pedidos, pagamento e frete.
-checkoutForm.addEventListener("submit",e=>{
-  e.preventDefault();
-  if(!checkoutForm.reportValidity())return;
-  const data=Object.fromEntries(new FormData(checkoutForm).entries());
-  const safe=value=>String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-  const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean);
-  document.getElementById("checkoutCustomerSummary").innerHTML=`<div class="customer-summary-grid"><div><small>Nome</small><strong>${safe(data.name)}</strong></div><div><small>E-mail</small><strong>${safe(data.email)}</strong></div><div><small>Telefone</small><strong>${safe(data.phone)}</strong></div><div class="customer-address"><small>Endereço de entrega</small><strong>${address.map(safe).join("<br>")}</strong></div></div>`;
-  const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));if(!p)return null;const chosen=cartVariantLabel(id);return {name:p.name,variant:Object.entries(chosen).map(([k,v])=>`${k}: ${v}`).join(" · "),qty,unit:p.price,total:p.price*qty};});
-  const validOrderEntries=orderEntries.filter(Boolean);
-  const subtotal=validOrderEntries.reduce((sum,item)=>sum+item.total,0);
-  document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${validOrderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.variant?escapeHTML(item.variant)+" · ":""}${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
-  document.getElementById("customerStep").hidden=true;
-  document.getElementById("reviewStep").hidden=false;
-  document.getElementById("stepCustomer").classList.remove("active");
-  document.getElementById("stepReview").classList.add("active");
-});
-document.getElementById("checkoutBack").addEventListener("click",()=>{
-  document.getElementById("reviewStep").hidden=true;
-  document.getElementById("customerStep").hidden=false;
-  document.getElementById("stepReview").classList.remove("active");
-  document.getElementById("stepCustomer").classList.add("active");
-});
-document.getElementById("checkoutPending").addEventListener("click",()=>notify("Dados revisados. A compra será habilitada após as integrações."));
-*/
+
 document.getElementById("wishlistToggle").addEventListener("click",()=>{activeFilter="Todos";searchTerm="";renderProducts();document.getElementById("destaques").scrollIntoView({behavior:"smooth"});notify(wishlist.size?wishlist.size+" produto(s) favoritado(s).":"Sua lista de favoritos está vazia.")});
 document.getElementById("menuToggle").addEventListener("click",()=>{const nav=document.getElementById("mainNav");nav.classList.toggle("open");document.getElementById("menuToggle").setAttribute("aria-expanded",nav.classList.contains("open"))});
 document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mainNav").classList.remove("open")));
