@@ -186,3 +186,6 @@ body.detail-open{overflow:hidden}
  .detail-content h2{font-size:32px}
  .detail-close{position:fixed;top:12px;right:12px}
 }
+
+.detail-variant-select{min-width:150px;max-width:100%;padding:10px 12px;background:#111;border:1px solid #514735;color:#f5f1e8;font:12px "DM Sans",sans-serif}
+.detail-variant-select:focus{outline:1px solid #c9a45c;border-color:#c9a45c}
