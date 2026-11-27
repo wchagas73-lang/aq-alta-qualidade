@@ -115,14 +115,16 @@ function renderHeroCarousel(){
     clearTimer();
     const active=allSlides[current],video=active?.querySelector("video");
     if(video){
-      // Vídeos permanecem até o término natural da reprodução.
+      // O vídeo sempre começa do início e só libera o próximo banner quando termina.
+      video.pause();
+      try{video.currentTime=0;}catch{}
       video.onended=()=>{if(allSlides[current]===active)show(current+1);};
-      video.onerror=()=>{if(allSlides[current]===active)show(current+1);};
+      video.onerror=()=>{if(allSlides[current]===active)notify("Não foi possível carregar este vídeo. Verifique o arquivo ou a URL.");};
       const play=video.play();
-      if(play&&typeof play.catch==="function")play.catch(()=>{});
+      if(play&&typeof play.catch==="function")play.catch(()=>notify("A reprodução do vídeo foi bloqueada pelo navegador."));
     }else if(active?.querySelector("img")){
-      // Fotos ficam visíveis por 4 segundos antes da próxima imagem.
-      timer=setTimeout(()=>show(current+1),4000);
+      // Fotos permanecem visíveis por 5 segundos.
+      timer=setTimeout(()=>show(current+1),5000);
     }
   };
   function show(next){
@@ -229,7 +231,6 @@ if(floatingCartButton){
     const rect=floatingCartButton.getBoundingClientRect();
     dragStartX=event.clientX;dragStartY=event.clientY;cartStartX=rect.left;cartStartY=rect.top;cartDragging=false;cartPointerId=event.pointerId;
     floatingCartButton.setPointerCapture(event.pointerId);
-    event.preventDefault();
   });
   floatingCartButton.addEventListener("pointermove",event=>{
     if(cartPointerId!==event.pointerId)return;
