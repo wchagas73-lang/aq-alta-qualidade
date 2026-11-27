@@ -97,6 +97,10 @@ alter table public.products add column if not exists weight_grams integer check 
 alter table public.products add column if not exists package_length_cm numeric(8,2) check (package_length_cm is null or package_length_cm > 0);
 alter table public.products add column if not exists package_width_cm numeric(8,2) check (package_width_cm is null or package_width_cm > 0);
 alter table public.products add column if not exists package_height_cm numeric(8,2) check (package_height_cm is null or package_height_cm > 0);
+alter table public.products add column if not exists promo_ends_at timestamptz;
+alter table public.products add column if not exists is_hero_featured boolean not null default false;
+alter table public.products add column if not exists hero_title text;
+alter table public.products add column if not exists hero_text text;
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
