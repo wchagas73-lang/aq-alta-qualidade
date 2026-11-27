@@ -285,3 +285,41 @@ if(requestedProduct){
   const openRequested=()=>{const product=products.find(p=>(p.slug||"")===requestedProduct);if(product)openProductDetail(product.id,false);};
   openRequested();window.addEventListener("aq:catalog-ready",openRequested,{once:true});
 }
+
+
+function initReviewCarousel(){
+  const viewport=document.querySelector(".reviews-window");
+  const track=viewport?.querySelector(".reviews-track");
+  if(!viewport||!track||viewport.dataset.carouselReady)return;
+  viewport.dataset.carouselReady="true";
+  let paused=false,dragging=false,startX=0,startScroll=0,frame=0;
+  const tick=()=>{
+    if(!paused&&!dragging&&viewport.scrollWidth>viewport.clientWidth){
+      const loopPoint=track.scrollWidth/2;
+      viewport.scrollLeft+=0.45;
+      if(loopPoint>0&&viewport.scrollLeft>=loopPoint)viewport.scrollLeft=0;
+    }
+    frame=requestAnimationFrame(tick);
+  };
+  const pause=()=>{paused=true;};
+  const resume=()=>{paused=false;};
+  viewport.addEventListener("pointerdown",e=>{
+    pause();
+    if(e.pointerType==="mouse"){dragging=true;startX=e.clientX;startScroll=viewport.scrollLeft;viewport.classList.add("is-dragging");}
+  });
+  viewport.addEventListener("pointermove",e=>{if(dragging)viewport.scrollLeft=startScroll-(e.clientX-startX);});
+  const release=()=>{dragging=false;viewport.classList.remove("is-dragging");resume();};
+  viewport.addEventListener("pointerup",release);
+  viewport.addEventListener("pointercancel",release);
+  viewport.addEventListener("pointerleave",()=>{if(dragging)release();});
+  viewport.addEventListener("touchstart",pause,{passive:true});
+  viewport.addEventListener("touchend",resume,{passive:true});
+  viewport.addEventListener("touchcancel",resume,{passive:true});
+  viewport.addEventListener("mouseenter",pause);
+  viewport.addEventListener("mouseleave",()=>{if(!dragging)resume();});
+  viewport.addEventListener("focusin",pause);
+  viewport.addEventListener("focusout",resume);
+  frame=requestAnimationFrame(tick);
+  window.addEventListener("pagehide",()=>cancelAnimationFrame(frame),{once:true});
+}
+initReviewCarousel();
