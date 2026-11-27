@@ -115,13 +115,15 @@ function renderHeroCarousel(){
     clearTimer();
     const active=allSlides[current],video=active?.querySelector("video");
     if(video){
+      // Vídeos permanecem até o término natural da reprodução.
       video.onended=()=>{if(allSlides[current]===active)show(current+1);};
       video.onerror=()=>{if(allSlides[current]===active)show(current+1);};
       const play=video.play();
       if(play&&typeof play.catch==="function")play.catch(()=>{});
+    }else if(active?.querySelector("img")){
+      // Fotos ficam visíveis por 4 segundos antes da próxima imagem.
+      timer=setTimeout(()=>show(current+1),4000);
     }
-    // Tempo máximo de exibição para qualquer mídia do banner.
-    timer=setTimeout(()=>show(current+1),5000);
   };
   function show(next){
     clearTimer();
