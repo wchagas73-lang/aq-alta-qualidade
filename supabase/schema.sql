@@ -257,8 +257,8 @@ for all to authenticated using ((select private.aq_has_role(array['owner','manag
 with check ((select private.aq_has_role(array['owner','manager'])));
 
 drop policy if exists "Admins read admin list" on public.admin_users;
-create policy "Admins read admin list" on public.admin_users
-for select to authenticated using ((select private.aq_is_admin()));
+create policy "Owner reads admin list" on public.admin_users
+for select to authenticated using ((select private.aq_has_role(array['owner'])));
 
 -- Storage: bucket público para leitura de fotos dos produtos, upload e gestão somente admin.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
