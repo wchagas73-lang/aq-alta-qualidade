@@ -610,3 +610,26 @@ html{scroll-behavior:smooth}
  .product-variant-options{gap:3px}
  .variant-option{min-width:21px;padding:3px 5px}
 }
+
+
+/* AQ: mídia dos produtos em tela cheia e controles sobrepostos */
+.product-image{position:relative;aspect-ratio:1/1;height:auto;overflow:hidden;background:#080808}
+.product-image>.product-placeholder{position:absolute;inset:0;display:block;width:100%;height:100%;font-size:0}
+.product-image>.product-placeholder img{display:block;width:100%;height:100%;object-fit:cover;padding:0}
+.product-image .product-tag,
+.product-image .discount-badge,
+.product-image .heart{z-index:3}
+.product-image .product-tag{left:10px;top:10px}
+.product-image .discount-badge{left:10px;bottom:10px}
+.product-image .heart{right:10px;top:10px}
+.hero-product-panel .promo-countdown{
+  background:transparent!important;
+  border:0!important;
+  border-left:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  padding:5px 0!important;
+  margin:8px 0 0!important;
+}
+.hero-product-panel .promo-countdown-label,
+.hero-product-panel .promo-countdown time{color:#fff!important;text-shadow:0 2px 9px #000,0 1px 3px #000}
