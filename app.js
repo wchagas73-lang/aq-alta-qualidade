@@ -26,7 +26,7 @@ function renderCart(){
   document.getElementById("wishCount").textContent=wishlist.size;
   const lines=[...cart.entries()];
   document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>x.id===id);return `<div class="cart-line"><div><strong>${p.name}</strong><small>${money(p.price)} cada</small></div><div class="qty-controls"><button data-dec="${id}" aria-label="Diminuir">−</button><span>${qty}</span><button data-inc="${id}" aria-label="Aumentar">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
-  const subtotal=lines.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);document.getElementById("cartSubtotal").textContent=money(subtotal);const target=199,progress=Math.min(100,subtotal/target*100);document.getElementById("shippingProgress").style.width=progress+"%";document.getElementById("shippingPercent").textContent=Math.round(progress)+"%";document.getElementById("shippingMessage").textContent=subtotal===0?"Adicione produtos ao carrinho.":subtotal>=target?"Meta ilustrativa atingida!":`Faltam ${money(target-subtotal)} para a meta ilustrativa.`;localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
+  const subtotal=lines.reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
 grid.addEventListener("click",e=>{
   const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");
@@ -49,7 +49,39 @@ function closeCart(){drawer.classList.remove("open");backdrop.classList.remove("
 document.getElementById("cartToggle").addEventListener("click",openCart);
 document.getElementById("cartClose").addEventListener("click",closeCart);
 backdrop.addEventListener("click",closeCart);
-document.getElementById("checkoutBtn").addEventListener("click",()=>notify("Checkout demonstrativo. Pagamentos serão integrados em uma próxima etapa."));
+const checkoutOverlay=document.getElementById("checkoutOverlay");
+const checkoutForm=document.getElementById("checkoutForm");
+function closeCheckout(){checkoutOverlay.classList.remove("open");checkoutOverlay.setAttribute("aria-hidden","true");}
+document.getElementById("checkoutBtn").addEventListener("click",()=>{
+  if(!cart.size){notify("Adicione pelo menos um produto para continuar.");return;}
+  checkoutOverlay.classList.add("open");checkoutOverlay.setAttribute("aria-hidden","false");closeCart();
+});
+document.getElementById("checkoutClose").addEventListener("click",closeCheckout);
+checkoutOverlay.addEventListener("click",e=>{if(e.target===checkoutOverlay)closeCheckout();});
+checkoutForm.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!checkoutForm.reportValidity())return;
+  const data=Object.fromEntries(new FormData(checkoutForm).entries());
+  const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean).join("\\n");
+  document.getElementById("checkoutCustomerSummary").textContent=data.name+"\\n"+data.email+"\\n"+data.phone+"\\n"+address;
+  const orderLines=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>x.id===id);return p.name+" | "+qty+" x "+money(p.price)+" = "+money(p.price*qty);});
+  const subtotal=[...cart.entries()].reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);
+  orderLines.push("Subtotal: "+money(subtotal));
+  orderLines.push("Frete: a calcular após integração");
+  document.getElementById("checkoutOrderSummary").textContent=orderLines.join("\\n");
+  document.getElementById("customerStep").hidden=true;
+  document.getElementById("reviewStep").hidden=false;
+  document.getElementById("stepCustomer").classList.remove("active");
+  document.getElementById("stepReview").classList.add("active");
+});
+document.getElementById("checkoutBack").addEventListener("click",()=>{
+  document.getElementById("reviewStep").hidden=true;
+  document.getElementById("customerStep").hidden=false;
+  document.getElementById("stepReview").classList.remove("active");
+  document.getElementById("stepCustomer").classList.add("active");
+});
+document.getElementById("checkoutPending").addEventListener("click",()=>notify("Dados revisados. A compra será habilitada após as integrações."));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&checkoutOverlay.classList.contains("open"))closeCheckout();});
 document.getElementById("wishlistToggle").addEventListener("click",()=>{activeFilter="Todos";searchTerm="";renderProducts();document.getElementById("destaques").scrollIntoView({behavior:"smooth"});notify(wishlist.size?wishlist.size+" produto(s) favoritado(s).":"Sua lista de favoritos está vazia.")});
 document.getElementById("menuToggle").addEventListener("click",()=>{const nav=document.getElementById("mainNav");nav.classList.toggle("open");document.getElementById("menuToggle").setAttribute("aria-expanded",nav.classList.contains("open"))});
 document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mainNav").classList.remove("open")));
