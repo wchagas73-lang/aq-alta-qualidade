@@ -143,3 +143,46 @@ button:disabled{
     transition-duration:.01ms!important;
   }
 }
+
+
+/* AQ product detail view */
+.product-card{cursor:pointer}
+.product-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.product-actions .add-cart{margin-top:0;flex:0 0 42px}
+.detail-link{border:0;border-bottom:1px solid #9c7b40;background:transparent;color:#e5cb91;padding:8px 0;font:600 11px "DM Sans",sans-serif;cursor:pointer}
+.detail-link:hover{color:#fff;border-color:#fff}
+.product-detail-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;background:#000e;overflow:auto}
+.product-detail-overlay.open{display:flex}
+.product-detail-panel{position:relative;width:min(980px,100%);max-height:min(850px,calc(100dvh - 40px));overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#090909;border:1px solid #514735;color:#f5f1e8;box-shadow:0 24px 90px #000c}
+.detail-close{position:absolute;z-index:2;right:14px;top:10px;width:38px;height:38px;border:1px solid #514735;background:#050505;color:#fff;font-size:25px;cursor:pointer}
+.detail-gallery{min-height:450px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;padding:22px;background:#111}
+.detail-gallery img{width:100%;height:100%;max-height:520px;min-height:210px;object-fit:cover;background:#181818}
+.detail-gallery img:only-child{grid-column:1/-1;height:100%;max-height:620px}
+.detail-placeholder{grid-column:1/-1;min-height:400px;display:grid;place-items:center;background:radial-gradient(circle,#272116,#090909 68%);font:800 100px "Playfair Display",serif;color:#c9a45c55}
+.detail-content{padding:clamp(25px,5vw,55px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.detail-content h2{font:700 clamp(30px,4vw,44px) "Playfair Display",serif;line-height:1.12;margin:12px 0 16px}
+.detail-prices{display:flex;align-items:center;gap:13px;margin-bottom:10px}
+.detail-prices strong{font-size:21px;color:#e5cb91}
+.detail-prices del{font-size:13px;color:#928a7c}
+.detail-stock{font-size:11px;color:#bdb4a4;margin:0 0 18px}
+.detail-description{font-size:13px;line-height:1.8;color:#d0c9bd;white-space:pre-line;margin:0 0 22px}
+.detail-variants{width:100%;margin:0 0 22px}
+.detail-variant-group{padding:12px 0;border-top:1px solid #30291d}
+.detail-variant-group>strong{display:block;color:#e5cb91;font-size:11px;margin-bottom:9px}
+.detail-variant-options{display:flex;flex-wrap:wrap;gap:7px}
+.detail-variant-options span{padding:7px 11px;border:1px solid #514735;background:#111;color:#eee;font-size:11px}
+.detail-content>.gold-button{margin-top:8px}
+.detail-demo{font-size:10px;line-height:1.5;color:#a99f8d;margin-top:12px}
+.detail-content button:disabled{opacity:.45}
+body.detail-open{overflow:hidden}
+@media(max-width:700px){
+ .product-detail-overlay{padding:0;align-items:flex-start}
+ .product-detail-panel{width:100%;max-height:none;min-height:100dvh;grid-template-columns:1fr;border:0}
+ .detail-gallery{min-height:0;grid-template-columns:1fr 1fr;padding:65px 14px 14px}
+ .detail-gallery img{min-height:150px;max-height:340px}
+ .detail-gallery img:only-child{max-height:420px}
+ .detail-placeholder{min-height:240px}
+ .detail-content{padding:25px 20px 35px}
+ .detail-content h2{font-size:32px}
+ .detail-close{position:fixed;top:12px;right:12px}
+}
