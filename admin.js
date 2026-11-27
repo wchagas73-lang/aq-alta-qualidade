@@ -117,19 +117,21 @@ async function signOut() {
 async function loadOverview() {
   const canOrders = roleCan(["orders"]);
   const canCatalog = roleCan(["catalog"]);
-  const [orders, products] = await Promise.all([
+  const [ordersCount, orders, products] = await Promise.all([
+    canOrders ? supabase.from("orders").select("id", { count:"exact", head:true }) : Promise.resolve({count:null,error:null}),
     canOrders ? supabase.from("orders").select("id,order_number,customer_name,created_at,order_status,total").order("created_at", { ascending:false }).limit(8) : Promise.resolve({data:[],error:null}),
     canCatalog ? supabase.from("products").select("id,stock_quantity,low_stock_threshold,is_active") : Promise.resolve({data:[],error:null})
   ]);
+  if (ordersCount.error) throw ordersCount.error;
   if (orders.error) throw orders.error;
   if (products.error) throw products.error;
   const allOrders = orders.data || [];
   const allProducts = products.data || [];
-  $("metricOrders").textContent = allOrders.length;
+  $("metricOrders").textContent = canOrders ? (ordersCount.count ?? 0) : "Restrito";
   const revenue = allOrders.filter(o => o.order_status !== "cancelled").reduce((s,o) => s + Number(o.total || 0), 0);
-  $("metricRevenue").textContent = money(revenue);
-  $("metricProducts").textContent = allProducts.filter(p => p.is_active).length;
-  $("metricLowStock").textContent = allProducts.filter(p => p.is_active && Number(p.stock_quantity) <= Number(p.low_stock_threshold)).length;
+  $("metricRevenue").textContent = canOrders ? money(revenue) : "Restrito";
+  $("metricProducts").textContent = canCatalog ? allProducts.filter(p => p.is_active).length : "Restrito";
+  $("metricLowStock").textContent = canCatalog ? allProducts.filter(p => p.is_active && Number(p.stock_quantity) <= Number(p.low_stock_threshold)).length : "Restrito";
   $("recentOrders").innerHTML = allOrders.length ? allOrders.map(o => `<tr><td>#${esc(o.order_number)}</td><td>${esc(o.customer_name)}</td><td>${date(o.created_at)}</td><td><span class="status-pill ${o.order_status === "cancelled" ? "bad" : ""}">${statusNames[o.order_status] || esc(o.order_status)}</span></td><td>${money(o.total)}</td></tr>`).join("") : '<tr><td colspan="5" class="empty-cell">Nenhum pedido registrado.</td></tr>';
 }
 async function loadCategories() {
@@ -180,6 +182,8 @@ function openDialog(title, entity, id, html) {
   editingId = id || null;
   currentEntity = entity;
   $("dialogTitle").textContent = title;
+  $("dialogSave").hidden = false;
+  $("dialogCancel").textContent = "Cancelar";
   fields.innerHTML = html;
   $("dialogFeedback").textContent = "";
   dialog.showModal();
