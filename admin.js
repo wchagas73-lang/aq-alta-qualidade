@@ -47,7 +47,22 @@ function requireConfig() {
   $("loginButton").disabled = false;
   return true;
 }
+function viewPermissions() {
+  return {
+    overview: true,
+    products: roleCan(["catalog"]),
+    categories: roleCan(["catalog"]),
+    orders: roleCan(["orders"]),
+    coupons: roleCan([]),
+    admins: activeRole === "owner",
+    settings: roleCan([])
+  };
+}
 function setView(name) {
+  if (!viewPermissions()[name]) {
+    showNotice("Seu perfil não tem permissão para acessar esta área.", true);
+    return;
+  }
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + name));
   document.querySelectorAll(".nav-item").forEach(v => v.classList.toggle("active", v.dataset.view === name));
   const item = document.querySelector('.nav-item[data-view="' + name + '"]');
@@ -74,15 +89,12 @@ async function verifyAdmin(user) {
   setView("overview");
 }
 function applyRoleAccess() {
+  const permissions = viewPermissions();
   document.querySelectorAll(".nav-item").forEach(btn => {
-    const v = btn.dataset.view;
-    const allowed = v === "overview" || v === "products" && roleCan(["catalog"]) ||
-      v === "categories" && roleCan(["catalog"]) ||
-      v === "orders" && roleCan(["orders"]) ||
-      v === "coupons" && roleCan([]) ||
-      v === "admins" && activeRole === "owner" ||
-      v === "settings" && roleCan([]);
-    btn.hidden = !allowed;
+    btn.hidden = !permissions[btn.dataset.view];
+  });
+  document.querySelectorAll("[data-go]").forEach(btn => {
+    btn.hidden = !permissions[btn.dataset.go];
   });
 }
 async function signIn(event) {
@@ -388,15 +400,13 @@ async function boot() {
   } else {
     setConnection(true, "Supabase pronto para login");
   }
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  supabase.auth.onAuthStateChange(event => {
     if (event === "SIGNED_OUT") {
       adminApp.hidden = true;
       loginView.hidden = false;
       currentUser = null;
       activeRole = null;
-    } else if (event === "SIGNED_IN" && session && !currentUser) {
-      try { await verifyAdmin(session.user); }
-      catch (e) { setLoginFeedback(e.message); await supabase.auth.signOut(); }
+      setConnection(false, "Sessão encerrada");
     }
   });
 }
