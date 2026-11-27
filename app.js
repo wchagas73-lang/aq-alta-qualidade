@@ -363,7 +363,7 @@ function initReviewCarousel(){
   const tick=()=>{
     if(!paused&&!dragging&&viewport.scrollWidth>viewport.clientWidth){
       const loopPoint=track.scrollWidth/2;
-      viewport.scrollLeft+=0.45;
+      viewport.scrollLeft+=0.85;
       if(loopPoint>0&&viewport.scrollLeft>=loopPoint)viewport.scrollLeft=0;
     }
     frame=requestAnimationFrame(tick);
