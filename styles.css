@@ -381,3 +381,17 @@ button:disabled{cursor:not-allowed;opacity:.5}
 @media(max-width:850px){.hero-slides,.hero{min-height:560px}.hero-slide{min-height:560px;padding:70px 8% 76px;align-items:flex-start}.hero-slide:after{background:linear-gradient(180deg,#050505f2 0%,#050505e8 48%,#05050566 100%)}.hero-slide-product-image{width:54vw;height:54vw;right:8%;top:auto;bottom:55px;transform:none;opacity:.52}.hero-product-panel{right:8%;bottom:72px;min-width:170px;max-width:220px;padding:11px 13px}.hero-product-panel strong{font-size:15px}.hero-arrow{top:auto;bottom:18px;width:34px;height:34px}.hero-prev{left:16px}.hero-next{right:16px}.hero-dots{bottom:31px}.hero-slide .hero-bottom{left:8%;right:8%;bottom:20px}.hero-slide .hero-copy{max-width:100%}}
 @media(max-width:520px){.hero-slides,.hero{min-height:590px}.hero-slide{min-height:590px;padding-top:62px}.hero-slide .hero-copy h1{font-size:40px}.hero-slide .hero-copy p{font-size:12px;max-width:330px}.hero-slide-product-image{width:60vw;height:60vw;bottom:48px}.hero-product-panel{bottom:74px;right:7%;max-width:185px}.hero-slide .hero-side-note{display:none}.hero-slide .hero-bottom span:last-child{display:none}}
 @media(prefers-reduced-motion:reduce){.hero-slide{transition:none}}
+
+
+/* AQ: ícones sociais em cores oficiais e mapa com paleta original */
+.footer-social-block{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:20px}
+.footer-social{display:flex;align-items:center;gap:13px}
+.social-icon{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center}
+.social-icon svg{display:block;width:27px;height:27px}
+.footer-social-note{color:#827b70;font-size:9px;line-height:1.5}
+.store-map iframe{filter:none!important}
+@media(max-width:620px){
+  .footer-social-block{margin-top:17px}
+  .footer-social{gap:16px}
+  .social-icon,.social-icon svg{width:29px;height:29px}
+}
