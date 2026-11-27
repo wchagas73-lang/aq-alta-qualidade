@@ -45,3 +45,8 @@ A chave configurada no navegador deverá ser somente a publishable/anon key, pro
 5. Inserir catálogo, imagens, preços, variações e estoque oficiais.
 6. Definir pagamento, frete, políticas comerciais e dados de atendimento.
 7. Implementar criação segura de pedidos no servidor, validar o fluxo ponta a ponta e só então habilitar vendas.
+
+
+## Preparação para lançamento
+
+Consulte [`docs/launch-checklist.md`](docs/launch-checklist.md) para a lista de acessos, dados comerciais, credenciais, integrações e testes obrigatórios antes de habilitar vendas reais.
