@@ -40,10 +40,10 @@ function productCardMarkup(p, spotlight = "") {
     <div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span>
     <span class="product-tag ${onSale?"product-tag-sale":p.is_featured?"product-tag-featured":""}">${label}</span>
     ${onSale?`<span class="discount-badge">-${discount}%</span>`:""}
-    ${onSale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?`<div class="promo-countdown" data-countdown="${escapeHTML(p.promo_ends_at)}"><span class="promo-countdown-label">Oferta termina em</span><time>Calculando...</time></div>`:""}
     <button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div>
     <div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3>
     <div class="product-price-line">${onSale?`<del>${money(Number(p.compare_at_price))}</del>`:""}<strong class="product-price ${onSale?"sale-price":""}">${money(Number(p.price)||0)}</strong></div>
+    ${onSale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?`<div class="promo-countdown" data-countdown="${escapeHTML(p.promo_ends_at)}"><span class="promo-countdown-label">Oferta termina em</span><time>Calculando...</time></div>`:""}
     ${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}
     <div class="product-actions"><button class="detail-link" type="button" data-detail="${id}">Ver detalhes</button><button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name}" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></div></article>`;
 }
@@ -219,11 +219,16 @@ async function loadAQCatalog() {
     if (productsError) throw productsError;
     if (categoriesError) throw categoriesError;
     realCatalogConnected = true;
-    products = (items || []).map(p => ({
-      id:p.id,name:p.name,slug:p.slug,description:p.description || "",sku:p.sku || "",category:p.categories?.name || "Outros",price:Number(p.price),compare_at_price:p.compare_at_price==null?null:Number(p.compare_at_price),promo_ends_at:p.promo_ends_at || null,hero_title:p.hero_title || "",hero_text:p.hero_text || "",is_hero_featured:Boolean(p.is_hero_featured),
-      tag:p.compare_at_price!=null&&Number(p.compare_at_price)>Number(p.price)?"OFERTA":p.is_featured?"DESTAQUE":"AQ",type:p.is_featured?"Destaques":"Novidades",is_featured:Boolean(p.is_featured),
-      stock:Number(p.stock_quantity),image_url:p.image_url || null,images:Array.isArray(p.images)?p.images:[],variants:Array.isArray(p.variants)?p.variants:[]
-    }));
+    products = (items || []).map(p => {
+      const expiredPromotion = Boolean(p.promo_ends_at && new Date(p.promo_ends_at).getTime() <= Date.now());
+      const effectivePrice = expiredPromotion && p.compare_at_price != null ? Number(p.compare_at_price) : Number(p.price);
+      const activeComparePrice = expiredPromotion ? null : (p.compare_at_price==null?null:Number(p.compare_at_price));
+      return {
+        id:p.id,name:p.name,slug:p.slug,description:p.description || "",sku:p.sku || "",category:p.categories?.name || "Outros",price:effectivePrice,compare_at_price:activeComparePrice,promo_ends_at:expiredPromotion?null:(p.promo_ends_at || null),hero_title:p.hero_title || "",hero_text:p.hero_text || "",is_hero_featured:Boolean(p.is_hero_featured),
+        tag:activeComparePrice!=null&&activeComparePrice>effectivePrice?"OFERTA":p.is_featured?"DESTAQUE":"AQ",type:p.is_featured?"Destaques":"Novidades",is_featured:Boolean(p.is_featured),
+        stock:Number(p.stock_quantity),image_url:p.image_url || null,images:Array.isArray(p.images)?p.images:[],variants:Array.isArray(p.variants)?p.variants:[]
+      };
+    });
     const validIds = new Set(products.map(p => String(p.id)));
     // Carrinhos podem armazenar a variante no sufixo "::..."; validar pelo ID base.
     for (const id of [...cart.keys()]) if (!validIds.has(cartProductId(id))) cart.delete(id);
