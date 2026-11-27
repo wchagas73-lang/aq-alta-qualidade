@@ -14,9 +14,13 @@ function readStoredArray(key){
     return Array.isArray(value) ? value : [];
   } catch { return []; }
 }
-const cart = new Map(readStoredArray("aq-cart")
-  .filter(entry => Array.isArray(entry) && entry.length === 2 && !/^\\d+$/.test(String(entry[0])) && Number.isInteger(Number(entry[1])) && Number(entry[1]) > 0)
-  .map(([id,qty]) => [String(id),Number(qty)]));
+// Limpa uma única vez os dados antigos de testes, sem apagar compras futuras a cada visita.
+const cartResetKey = "aq-cart-reset-v1";
+if (localStorage.getItem(cartResetKey) !== "done") {
+  localStorage.removeItem("aq-cart");
+  localStorage.setItem(cartResetKey, "done");
+}
+const cart = new Map();
 const wishlist = new Set(readStoredArray("aq-wishlist")
   .filter(id => !/^\\d+$/.test(String(id)) && (typeof id === "string" || typeof id === "number"))
   .map(String));
@@ -115,9 +119,9 @@ function renderHeroCarousel(){
       video.onerror=()=>{if(allSlides[current]===active)show(current+1);};
       const play=video.play();
       if(play&&typeof play.catch==="function")play.catch(()=>{});
-    }else if(active?.querySelector("img")){
-      timer=setTimeout(()=>show(current+1),7000);
     }
+    // Tempo máximo de exibição para qualquer mídia do banner.
+    timer=setTimeout(()=>show(current+1),5000);
   };
   function show(next){
     clearTimer();
