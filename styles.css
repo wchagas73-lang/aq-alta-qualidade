@@ -561,3 +561,52 @@ html{scroll-behavior:smooth}
  .review-rating-summary{gap:8px}
 }
 @media(prefers-reduced-motion:reduce){.hero-slide-product-image{transform:none!important}}
+
+
+/* AQ: cartões compactos e responsivos, com variações visíveis na própria vitrine */
+.product-grid,.spotlight-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.product-card{min-width:0;border-radius:2px}
+.product-image{height:auto;aspect-ratio:1/1}
+.product-image img{object-fit:contain;padding:8px}
+.product-info{padding:12px;min-width:0}
+.product-info h3{font-size:clamp(13px,1.15vw,16px);line-height:1.25;margin:5px 0}
+.product-price-line{gap:6px;margin-top:5px}
+.product-price-line .product-price{font-size:15px}
+.product-short-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:6px 0 8px;color:#aaa39a;font-size:10px;line-height:1.4;min-height:28px}
+.product-variants{display:grid;gap:7px;margin:8px 0}
+.product-variant-group{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:7px}
+.product-variant-label{padding-top:4px;color:#c9a45c;font-size:9px;font-weight:700;white-space:nowrap}
+.product-variant-options{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+.variant-option{min-width:25px;min-height:25px;padding:4px 7px;border:1px solid #625337;background:#0b0b0b;color:#e9e2d5;font-size:9px;line-height:1.1;border-radius:2px}
+.variant-option.is-selected{background:#c9a45c;border-color:#c9a45c;color:#080808;font-weight:800}
+.product-info .stock-alert{display:block;margin-top:6px;font-size:9px}
+.product-info>small{display:block;margin-top:2px;font-size:8px;color:#827b70}
+.product-add-button{width:100%;min-height:35px;margin-top:9px;padding:8px 6px;font-size:9px;letter-spacing:.35px}
+.product-add-button:disabled{opacity:.45;cursor:not-allowed}
+.product-card .heart{width:28px;height:28px;right:8px;top:8px}
+.product-card .product-tag{left:8px;top:8px;padding:5px 7px;font-size:7px}
+.product-card .discount-badge{left:8px;bottom:8px;padding:5px 7px;font-size:9px}
+@media(max-width:1000px){
+ .product-grid,.spotlight-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+ .product-image{height:auto}
+}
+@media(max-width:700px){
+ .product-grid,.spotlight-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .product-info{padding:9px}
+ .product-info h3{font-size:13px}
+ .product-price-line .product-price{font-size:14px}
+ .product-short-description{font-size:9px;min-height:25px;margin:5px 0 6px}
+ .product-variants{gap:6px;margin:6px 0}
+ .product-variant-group{grid-template-columns:1fr;gap:3px}
+ .product-variant-label{font-size:8px;padding:0}
+ .variant-option{min-width:23px;min-height:23px;padding:4px 6px;font-size:8px}
+ .product-add-button{min-height:33px;font-size:8px;margin-top:7px}
+ .product-card .stock-alert{font-size:8px}
+}
+@media(max-width:360px){
+ .product-grid,.spotlight-grid{gap:7px}
+ .product-info{padding:7px}
+ .product-info h3{font-size:12px}
+ .product-variant-options{gap:3px}
+ .variant-option{min-width:21px;padding:3px 5px}
+}
