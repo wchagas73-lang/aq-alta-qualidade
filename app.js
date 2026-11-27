@@ -114,7 +114,7 @@ function openProductDetail(id,updateUrl=true){
 }
 function closeProductDetail(updateUrl=true){
   detailOverlay.classList.remove("open");detailOverlay.setAttribute("aria-hidden","true");document.body.classList.remove("detail-open");activeDetailProduct=null;
-  if(updateUrl&&new URL(window.location.href).searchParams.has("produto")){const url=new URL(window.location.href);url.searchParams.delete("produto");history.pushState({},"",url);}
+  if(updateUrl&&new URL(window.location.href).searchParams.has("produto")){const url=new URL(window.location.href);url.searchParams.delete("produto");history.replaceState({},"",url);}
 }
 document.getElementById("detailClose").addEventListener("click",()=>closeProductDetail());
 detailOverlay.addEventListener("click",e=>{if(e.target===detailOverlay)closeProductDetail();});
