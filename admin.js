@@ -214,7 +214,7 @@ async function productDialog(id = null) {
     field("SKU","sku","text",p.sku || "",'maxlength="80"') +
     selectField("Categoria","category_id",categoryOptions,p.category_id || "") +
     field("Preço (R$)","price","number",p.price ?? "",'required min="0" step="0.01"') +
-    field("Preço anterior (opcional)","compare_at_price","number",p.compare_at_price ?? "",'min="0" step="0.01"') +
+    field("Preço anterior (maior que o atual para promoção)","compare_at_price","number",p.compare_at_price ?? "",'min="0" step="0.01"') +
     field("Quantidade em estoque","stock_quantity","number",p.stock_quantity ?? 0,'required min="0" step="1"') +
     field("Alerta de estoque baixo","low_stock_threshold","number",p.low_stock_threshold ?? 5,'required min="0" step="1"') +
     field("Peso para frete (gramas)","weight_grams","number",p.weight_grams ?? "",'min="1" step="1"') +
@@ -227,7 +227,7 @@ async function productDialog(id = null) {
     `<label class="full">Descrição<textarea name="description" maxlength="4000">${esc(p.description || "")}</textarea></label>` +
     selectField("Visibilidade","is_active", [["false","Rascunho / oculto"],["true","Publicado"]],String(p.is_active ?? false)) +
     selectField("Destaque na vitrine","is_featured",[["false","Não"],["true","Sim"]],String(p.is_featured ?? false)) +
-    '<p class="full data-note">As imagens podem ser informadas por URL pública ou enviadas ao bucket aq-products do Supabase do proprietário.</p>');
+    '<p class="full data-note">Para criar uma oferta, informe um preço anterior maior que o preço atual. O produto aparecerá automaticamente na seção Ofertas especiais. Marque Destaque na vitrine para incluí-lo também na seleção Em destaque. As imagens podem ser informadas por URL pública ou enviadas ao bucket aq-products do Supabase do proprietário.</p>');
 }
 async function loadCategoryOptions() {
   const { data, error } = await supabase.from("categories").select("id,name,slug,is_active").order("name");
