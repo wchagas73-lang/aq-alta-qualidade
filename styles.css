@@ -728,3 +728,9 @@ html{scroll-behavior:smooth}
   box-shadow:0 1px 4px #0009!important;
 }
 
+
+
+/* AQ: borda dourada uniforme em todas as categorias */
+.category-grid .category-card{
+  border:1px solid #c9a45c!important;
+}
