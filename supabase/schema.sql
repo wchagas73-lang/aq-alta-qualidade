@@ -7,6 +7,11 @@ begin;
 
 create extension if not exists pgcrypto;
 
+-- Funções privilegiadas ficam fora do schema exposto pela Data API.
+create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to anon, authenticated;
+
 create table if not exists public.admin_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
@@ -17,7 +22,7 @@ create table if not exists public.admin_users (
   updated_at timestamptz not null default now()
 );
 
-create or replace function public.aq_is_admin()
+create or replace function private.aq_is_admin()
 returns boolean
 language sql
 stable
@@ -26,12 +31,13 @@ set search_path = ''
 as $$
   select exists (
     select 1 from public.admin_users a
-    where a.user_id = (select auth.uid())
+    where (select auth.uid()) is not null
+      and a.user_id = (select auth.uid())
       and a.is_active = true
   );
 $$;
 
-create or replace function public.aq_has_role(allowed_roles text[])
+create or replace function private.aq_has_role(allowed_roles text[])
 returns boolean
 language sql
 stable
@@ -46,10 +52,10 @@ as $$
   );
 $$;
 
-revoke all on function public.aq_is_admin() from public;
-revoke all on function public.aq_has_role(text[]) from public;
-grant execute on function public.aq_is_admin() to anon, authenticated;
-grant execute on function public.aq_has_role(text[]) to authenticated;
+revoke all on function private.aq_is_admin() from public;
+revoke all on function private.aq_has_role(text[]) from public;
+grant execute on function private.aq_is_admin() to anon, authenticated;
+grant execute on function private.aq_has_role(text[]) to authenticated;
 
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
@@ -201,48 +207,48 @@ grant select on public.admin_users to authenticated;
 
 drop policy if exists "Public can read active categories" on public.categories;
 create policy "Public can read active categories" on public.categories
-for select to anon, authenticated using (is_active = true or (select public.aq_is_admin()));
+for select to anon, authenticated using (is_active = true or (select private.aq_is_admin()));
 
 drop policy if exists "Public can read active products" on public.products;
 create policy "Public can read active products" on public.products
-for select to anon, authenticated using (is_active = true or (select public.aq_is_admin()));
+for select to anon, authenticated using (is_active = true or (select private.aq_is_admin()));
 
 drop policy if exists "Admins manage categories" on public.categories;
 create policy "Admins manage categories" on public.categories
-for all to authenticated using ((select public.aq_has_role(array['owner','manager','catalog'])))
-with check ((select public.aq_has_role(array['owner','manager','catalog'])));
+for all to authenticated using ((select private.aq_has_role(array['owner','manager','catalog'])))
+with check ((select private.aq_has_role(array['owner','manager','catalog'])));
 
 drop policy if exists "Admins manage products" on public.products;
 create policy "Admins manage products" on public.products
-for all to authenticated using ((select public.aq_has_role(array['owner','manager','catalog'])))
-with check ((select public.aq_has_role(array['owner','manager','catalog'])));
+for all to authenticated using ((select private.aq_has_role(array['owner','manager','catalog'])))
+with check ((select private.aq_has_role(array['owner','manager','catalog'])));
 
 drop policy if exists "Admins read orders" on public.orders;
 create policy "Admins read orders" on public.orders
-for select to authenticated using ((select public.aq_has_role(array['owner','manager','orders'])));
+for select to authenticated using ((select private.aq_has_role(array['owner','manager','orders'])));
 
 drop policy if exists "Admins update orders" on public.orders;
 create policy "Admins update orders" on public.orders
-for update to authenticated using ((select public.aq_has_role(array['owner','manager','orders'])))
-with check ((select public.aq_has_role(array['owner','manager','orders'])));
+for update to authenticated using ((select private.aq_has_role(array['owner','manager','orders'])))
+with check ((select private.aq_has_role(array['owner','manager','orders'])));
 
 drop policy if exists "Admins read order items" on public.order_items;
 create policy "Admins read order items" on public.order_items
-for select to authenticated using ((select public.aq_has_role(array['owner','manager','orders'])));
+for select to authenticated using ((select private.aq_has_role(array['owner','manager','orders'])));
 
 drop policy if exists "Admins manage coupons" on public.coupons;
 create policy "Admins manage coupons" on public.coupons
-for all to authenticated using ((select public.aq_has_role(array['owner','manager'])))
-with check ((select public.aq_has_role(array['owner','manager'])));
+for all to authenticated using ((select private.aq_has_role(array['owner','manager'])))
+with check ((select private.aq_has_role(array['owner','manager'])));
 
 drop policy if exists "Admins manage settings" on public.store_settings;
 create policy "Admins manage settings" on public.store_settings
-for all to authenticated using ((select public.aq_has_role(array['owner','manager'])))
-with check ((select public.aq_has_role(array['owner','manager'])));
+for all to authenticated using ((select private.aq_has_role(array['owner','manager'])))
+with check ((select private.aq_has_role(array['owner','manager'])));
 
 drop policy if exists "Admins read admin list" on public.admin_users;
 create policy "Admins read admin list" on public.admin_users
-for select to authenticated using ((select public.aq_is_admin()));
+for select to authenticated using ((select private.aq_is_admin()));
 
 -- Storage: bucket público para leitura de fotos dos produtos, upload e gestão somente admin.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -257,24 +263,24 @@ drop policy if exists "Admins upload AQ product images" on storage.objects;
 create policy "Admins upload AQ product images" on storage.objects
 for insert to authenticated with check (
   bucket_id = 'aq-products'
-  and (select public.aq_has_role(array['owner','manager','catalog']))
+  and (select private.aq_has_role(array['owner','manager','catalog']))
 );
 
 drop policy if exists "Admins update AQ product images" on storage.objects;
 create policy "Admins update AQ product images" on storage.objects
 for update to authenticated using (
   bucket_id = 'aq-products'
-  and (select public.aq_has_role(array['owner','manager','catalog']))
+  and (select private.aq_has_role(array['owner','manager','catalog']))
 ) with check (
   bucket_id = 'aq-products'
-  and (select public.aq_has_role(array['owner','manager','catalog']))
+  and (select private.aq_has_role(array['owner','manager','catalog']))
 );
 
 drop policy if exists "Admins delete AQ product images" on storage.objects;
 create policy "Admins delete AQ product images" on storage.objects
 for delete to authenticated using (
   bucket_id = 'aq-products'
-  and (select public.aq_has_role(array['owner','manager','catalog']))
+  and (select private.aq_has_role(array['owner','manager','catalog']))
 );
 
 commit;
