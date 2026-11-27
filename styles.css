@@ -688,3 +688,21 @@ html{scroll-behavior:smooth}
 .product-image .discount-badge{
   color:#ff6655!important;
 }
+
+
+/* AQ: carrinho flutuante arrastável, exibido somente com itens */
+.floating-cart[hidden]{display:none!important}
+.floating-cart{
+  position:fixed;right:18px;bottom:24px;top:auto;left:auto;z-index:38;
+  width:54px;height:54px;border:1px solid #e4c77f;border-radius:50%;
+  background:#101010;color:#f2d28b;display:grid;place-items:center;
+  box-shadow:0 5px 20px #0008;cursor:grab;touch-action:none;user-select:none;
+}
+.floating-cart svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.floating-cart-count{
+  position:absolute;top:-6px;right:-5px;min-width:21px;height:21px;padding:0 5px;
+  display:grid;place-items:center;border-radius:999px;background:#ff6655;color:#fff;
+  border:2px solid #101010;font:800 10px/1 "DM Sans",sans-serif;
+}
+.floating-cart.is-dragging{cursor:grabbing;box-shadow:0 8px 25px #000b}
+@media(max-width:620px){.floating-cart{width:48px;height:48px;right:14px;bottom:18px}.floating-cart svg{width:24px;height:24px}}
