@@ -45,16 +45,28 @@ function productCardMarkup(p, spotlight = "") {
   const onSale=Number(p.compare_at_price)>Number(p.price);
   const discount=onSale?Math.round((1-(Number(p.price)/Number(p.compare_at_price)))*100):0;
   const label=onSale?"OFERTA":"AQ";
-  return `<article class="product-card ${spotlight==="promo"?"product-card-promo":""}" data-product-open="${id}">
+  const shortDescription=String(p.description||"").trim();
+  const compactDescription=shortDescription.length>92?shortDescription.slice(0,89).trimEnd()+"…":shortDescription;
+  const variants=(Array.isArray(p.variants)?p.variants:[]).filter(v=>v&&typeof v==="object"&&Array.isArray(v.options)&&v.options.length);
+  const variantsMarkup=variants.map(variant=>{
+    const variantName=String(variant.name||"Opções");
+    const options=variant.options.filter(option=>option!==null&&option!==undefined&&String(option).trim());
+    if(!options.length)return "";
+    return `<div class="product-variant-group"><span class="product-variant-label">${escapeHTML(variantName)}</span><div class="product-variant-options">${options.map(option=>`<button type="button" class="variant-option" data-variant-name="${escapeHTML(variantName)}" data-variant-option="${escapeHTML(option)}" aria-pressed="false">${escapeHTML(option)}</button>`).join("")}</div></div>`;
+  }).join("");
+  const unavailable=realCatalogConnected&&Number(p.stock)<=0;
+  return `<article class="product-card ${spotlight==="promo"?"product-card-promo":""}" data-product-card="${id}">
     <div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span>
     <span class="product-tag ${onSale?"product-tag-sale":""}">${label}</span>
     ${onSale?`<span class="discount-badge">-${discount}%</span>`:""}
     <button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div>
     <div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3>
     <div class="product-price-line">${onSale?`<del>${money(Number(p.compare_at_price))}</del>`:""}<strong class="product-price ${onSale?"sale-price":""}">${money(Number(p.price)||0)}</strong></div>
+    ${compactDescription?`<p class="product-short-description">${escapeHTML(compactDescription)}</p>`:""}
+    ${variantsMarkup? `<div class="product-variants">${variantsMarkup}</div>`:""}
     ${onSale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?`<div class="promo-countdown" data-countdown="${escapeHTML(p.promo_ends_at)}"><span class="promo-countdown-label">Oferta termina em</span><time>Calculando...</time></div>`:""}
-    ${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}
-    <div class="product-actions"><button class="detail-link" type="button" data-detail="${id}">Ver detalhes</button><button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name}" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></div></article>`;
+    ${realCatalogConnected?`<span class="stock-alert">${unavailable?"Indisponível":`Em estoque: ${Number(p.stock)}`}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos</small>`}
+    <button class="add-cart product-add-button" type="button" ${unavailable?"disabled":""} data-add="${id}">${unavailable?"Indisponível":"Adicionar ao carrinho"}</button></div></article>`;
 }
 function renderHeroCarousel(){
   const root=document.getElementById("heroSlides");
@@ -151,12 +163,40 @@ function renderCart(){
   document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));if(!p)return "";const safeId=escapeHTML(id);const chosen=cartVariantLabel(id);const chosenText=Object.entries(chosen).map(([k,v])=>`${k}: ${v}`).join(" · ");return `<div class="cart-line"><div><strong>${escapeHTML(p.name)}</strong><small>${chosenText?escapeHTML(chosenText)+" · ":""}${money(Number(p.price)||0)} cada</small></div><div class="qty-controls"><button data-dec="${safeId}" aria-label="Diminuir quantidade de ${escapeHTML(p.name)}">−</button><span>${qty}</span><button data-inc="${safeId}" aria-label="Aumentar quantidade de ${escapeHTML(p.name)}">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
   const subtotal=lines.reduce((sum,[id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));return sum+(p?p.price*qty:0)},0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
-grid.addEventListener("click",e=>{
-  const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");const detail=e.target.closest("[data-detail]");const card=e.target.closest("[data-product-open]");
-  if(detail){openProductDetail(detail.dataset.detail);return;}
-  if(card&&!add&&!wish){openProductDetail(card.dataset.productOpen);return;}
-  if(add){const id=add.dataset.add;const product=products.find(p=>String(p.id)===String(id));if(realCatalogConnected&&(!product||product.stock<=0)){notify("Produto indisponível no momento.");return;}if((product?.variants||[]).length){openProductDetail(id);return;}cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();}
-  if(wish){const id=wish.dataset.wish;wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
+document.addEventListener("click",e=>{
+  const option=e.target.closest("[data-variant-option]");
+  if(option){
+    const group=option.closest(".product-variant-group");
+    group?.querySelectorAll("[data-variant-option]").forEach(button=>{
+      const active=button===option;
+      button.classList.toggle("is-selected",active);
+      button.setAttribute("aria-pressed",String(active));
+    });
+    return;
+  }
+  const add=e.target.closest("[data-add]");
+  const wish=e.target.closest("[data-wish]");
+  if(add){
+    const id=String(add.dataset.add),product=products.find(p=>String(p.id)===id);
+    if(!product)return;
+    if(realCatalogConnected&&Number(product.stock)<=0){notify("Produto indisponível no momento.");return;}
+    const card=add.closest("[data-product-card]");
+    const selections={};
+    let incomplete=false;
+    (Array.isArray(product.variants)?product.variants:[]).filter(v=>v&&typeof v==="object"&&Array.isArray(v.options)&&v.options.length).forEach(variant=>{
+      const group=[...(card?.querySelectorAll(".product-variant-group")||[])].find(el=>el.querySelector("[data-variant-name]")?.dataset.variantName===String(variant.name||"Opções"));
+      const selected=group?.querySelector(".variant-option.is-selected");
+      if(!selected)incomplete=true;
+      else selections[String(variant.name||"Opções")]=selected.dataset.variantOption;
+    });
+    if(incomplete){notify("Escolha as opções disponíveis antes de adicionar.");return;}
+    const variantKey=Object.keys(selections).length?"::"+encodeURIComponent(JSON.stringify(selections)):"";
+    const cartId=id+variantKey;
+    const totalForProduct=[...cart.entries()].filter(([key])=>cartProductId(key)===id).reduce((sum,[,qty])=>sum+qty,0)+1;
+    if(realCatalogConnected&&totalForProduct>Number(product.stock)){notify("Quantidade disponível em estoque atingida.");return;}
+    cart.set(cartId,(cart.get(cartId)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();return;
+  }
+  if(wish){const id=String(wish.dataset.wish);wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
 });
 document.addEventListener("click",e=>{
   const inc=e.target.closest("[data-inc]"),dec=e.target.closest("[data-dec]");
