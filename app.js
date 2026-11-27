@@ -17,16 +17,29 @@ let activeFilter = "Todos";
 let realCatalogConnected = false;
 let searchTerm = "";
 function notify(message){toast.textContent=message;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),2300)}
+function escapeHTML(value){
+  return String(value ?? "").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+}
+function safeImageURL(value){
+  try {
+    const url = new URL(String(value || ""), window.location.origin);
+    return url.protocol === "https:" ? url.href : "";
+  } catch { return ""; }
+}
 function renderProducts(){
   const visible=products.filter(p=>(activeFilter==="Todos"||p.type===activeFilter)&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
-  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">${p.image_url?`<img src="${p.image_url}" alt="${p.name}" loading="lazy">`:"AQ"}</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${p.stock}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
+  grid.innerHTML=visible.length?visible.map(p=>{
+    const id=escapeHTML(p.id),name=escapeHTML(p.name),category=escapeHTML(p.category),tag=escapeHTML(p.tag);
+    const image=safeImageURL(p.image_url);
+    return `<article class="product-card"><div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span><span class="product-tag">${tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3><div class="product-price">${money(Number(p.price)||0)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`;
+  }).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
   document.getElementById("cartCount").textContent=count;
   document.getElementById("wishCount").textContent=wishlist.size;
   const lines=[...cart.entries()];
-  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return "";return `<div class="cart-line"><div><strong>${p.name}</strong><small>${money(p.price)} cada</small></div><div class="qty-controls"><button data-dec="${id}" aria-label="Diminuir">−</button><span>${qty}</span><button data-inc="${id}" aria-label="Aumentar">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
+  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return "";const safeId=escapeHTML(id);return `<div class="cart-line"><div><strong>${escapeHTML(p.name)}</strong><small>${money(Number(p.price)||0)} cada</small></div><div class="qty-controls"><button data-dec="${safeId}" aria-label="Diminuir quantidade de ${escapeHTML(p.name)}">−</button><span>${qty}</span><button data-inc="${safeId}" aria-label="Aumentar quantidade de ${escapeHTML(p.name)}">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
   const subtotal=lines.reduce((sum,[id,qty])=>{const p=products.find(x=>String(x.id)===String(id));return sum+(p?p.price*qty:0)},0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
 grid.addEventListener("click",e=>{
