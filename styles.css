@@ -528,3 +528,36 @@ html{scroll-behavior:smooth}
  .hero-slide-product-image,.hero-slide-video-media{transform:none!important}
  .reveal{opacity:1;transform:none}
 }
+
+
+/* AQ: banner sem painel opaco e sem seção duplicada de destaque */
+#escolhas-aq{display:none!important}
+.hero-slide-product:after,.hero-slide-video:after{background:transparent!important}
+.hero-product-panel{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  padding:14px 18px!important;
+  text-shadow:0 2px 9px #000,0 1px 3px #000;
+}
+.hero-product-panel strong,.hero-product-description,.hero-product-panel>a,
+.hero-media-price b,.hero-media-price del,.hero-product-panel .promo-countdown-label,
+.hero-product-panel .promo-countdown time{ text-shadow:0 2px 8px #000,0 1px 3px #000 }
+.hero-media-label{background:transparent!important;border:1px solid #e5cb91aa;text-shadow:0 2px 8px #000}
+.hero-slide-banner-video{display:block;position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;background:#000;z-index:0}
+.hero-slide-video{display:block!important;min-height:510px;padding:0!important;background:#000!important}
+.hero-slide-video .hero-product-panel{display:block!important}
+.hero-slide-video .hero-bottom{z-index:2}
+.review-rating-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.review-rating-summary strong{font:600 38px/1 "DM Sans",sans-serif;color:#fff}
+.review-rating-summary span{font-size:18px;letter-spacing:2px;color:#d6b56f}
+.review-rating-summary small{flex-basis:100%;font-size:11px;letter-spacing:.4px;color:#c5b99f}
+@media(max-width:760px){
+ .hero-product-panel{top:auto!important;right:12px!important;bottom:54px!important;left:auto!important;width:min(260px,78vw);max-width:calc(100% - 24px);padding:10px 12px!important}
+ .hero-slide-video .hero-product-panel{top:auto!important;bottom:54px!important}
+ .hero-slide-banner-video{object-fit:cover}
+ .review-rating-summary{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){.hero-slide-product-image{transform:none!important}}
