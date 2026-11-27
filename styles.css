@@ -121,3 +121,25 @@ body{background:#000;color:#f5f1e8}
 @media(max-width:620px){.hero-art{width:170px;height:170px;right:-30px;bottom:24px;top:auto;transform:none;opacity:.22}.about{grid-template-columns:1fr;gap:28px}.about-symbol{width:min(100%,280px);padding:20px}.customer-summary-grid{grid-template-columns:1fr}.customer-summary-grid>div,.customer-summary-grid>div:nth-child(odd){border-right:0}.customer-summary-grid .customer-address{grid-column:auto}.order-summary-item{align-items:flex-start}.order-summary-item>b{font-size:11px}}
 
 .product-placeholder img{width:100%;height:100%;object-fit:cover;display:block}.add-cart:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+
+
+/* Ajustes finais de identidade e acessibilidade AQ */
+.cat-fashion,.cat-perfume,.cat-supp,.cat-casual,.cat-accessories,.cat-wellness{
+  background:linear-gradient(125deg,#171717 0%,#080808 100%)!important;
+}
+:where(a,button,input):focus-visible{
+  outline:2px solid var(--gold2);
+  outline-offset:3px;
+}
+button:disabled{
+  cursor:not-allowed;
+  opacity:.48;
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
