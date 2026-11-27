@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Painel administrativo | AQ Alta Qualidade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <main id="loginView" class="login-wrap">
+    <section class="login-card">
+      <a href="index.html" class="login-brand"><img src="assets/aq-logo.svg" alt="AQ Alta Qualidade"></a>
+      <span class="eyebrow">ÁREA RESTRITA</span>
+      <h1>Painel administrativo</h1>
+      <p>Acesse com seu usuário autorizado da AQ Alta Qualidade.</p>
+      <form id="loginForm">
+        <label>E-mail<input id="loginEmail" type="email" autocomplete="username" required placeholder="seu@email.com"></label>
+        <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Sua senha"></label>
+        <button class="primary-btn" type="submit" id="loginButton">Entrar no painel</button>
+      </form>
+      <p class="login-feedback" id="loginFeedback" role="status"></p>
+      <small>O acesso é individual. Somente usuários cadastrados e autorizados pelo proprietário podem entrar.</small>
+    </section>
+  </main>
+
+  <div id="adminApp" class="admin-shell" hidden>
+    <aside class="sidebar" id="sidebar">
+      <a class="side-brand" href="index.html"><img src="assets/aq-logo.svg" alt="AQ Alta Qualidade"></a>
+      <div class="side-caption">GESTÃO DA LOJA</div>
+      <nav class="side-nav" aria-label="Navegação administrativa">
+        <button class="nav-item active" data-view="overview"><span>▦</span> Visão geral</button>
+        <button class="nav-item" data-view="products"><span>◇</span> Produtos</button>
+        <button class="nav-item" data-view="categories"><span>▤</span> Categorias</button>
+        <button class="nav-item" data-view="orders"><span>▣</span> Pedidos</button>
+        <button class="nav-item" data-view="coupons"><span>%</span> Cupons</button>
+        <button class="nav-item" data-view="admins"><span>♙</span> Administradores</button>
+        <button class="nav-item" data-view="settings"><span>⚙</span> Configurações</button>
+      </nav>
+      <div class="sidebar-bottom"><span class="connection-dot" id="connectionDot"></span><span id="connectionText">Verificando conexão</span></div>
+    </aside>
+
+    <section class="admin-main">
+      <header class="admin-topbar">
+        <button id="menuButton" class="mobile-menu" aria-label="Abrir menu">☰</button>
+        <div><span class="eyebrow">AQ ALTA QUALIDADE</span><h1 id="viewTitle">Visão geral</h1></div>
+        <div class="account-area"><div class="account-meta"><strong id="accountEmail">Administrador</strong><small id="accountRole">Acesso autorizado</small></div><button id="logoutButton" class="logout-btn">Sair</button></div>
+      </header>
+      <div id="notice" class="notice" role="status" hidden></div>
+
+      <section class="view active" id="view-overview">
+        <div class="welcome-row"><div><h2>Resumo da operação</h2><p>Indicadores calculados com os registros disponíveis no banco.</p></div><button class="secondary-btn" id="refreshOverview">Atualizar dados</button></div>
+        <div class="metric-grid">
+          <article class="metric-card"><span>Pedidos registrados</span><strong id="metricOrders">0</strong><small>Total no banco</small></article>
+          <article class="metric-card"><span>Faturamento registrado</span><strong id="metricRevenue">R$ 0,00</strong><small>Pedidos não cancelados</small></article>
+          <article class="metric-card"><span>Produtos ativos</span><strong id="metricProducts">0</strong><small>Catálogo publicado</small></article>
+          <article class="metric-card"><span>Estoque baixo</span><strong id="metricLowStock">0</strong><small>Abaixo do limite cadastrado</small></article>
+        </div>
+        <div class="content-card"><div class="card-heading"><div><h3>Pedidos recentes</h3><p>Últimos pedidos cadastrados no sistema.</p></div><button class="text-btn" data-go="orders">Ver todos</button></div><div class="table-wrap"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Status</th><th>Total</th></tr></thead><tbody id="recentOrders"><tr><td colspan="5" class="empty-cell">Nenhum pedido registrado.</td></tr></tbody></table></div></div>
+        <p class="data-note">Os indicadores começam vazios. Não há vendas, estoque ou pedidos fictícios cadastrados como dados reais.</p>
+      </section>
+
+      <section class="view" id="view-products">
+        <div class="view-toolbar"><div><h2>Catálogo de produtos</h2><p>Cadastre produtos reais, preços, imagens e estoque.</p></div><button class="primary-btn" id="newProduct">Novo produto</button></div>
+        <div class="content-card"><div class="table-wrap"><table><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Visibilidade</th><th>Ações</th></tr></thead><tbody id="productsTable"><tr><td colspan="6" class="empty-cell">Carregando produtos...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-categories">
+        <div class="view-toolbar"><div><h2>Categorias</h2><p>Organize a vitrine e os filtros da loja.</p></div><button class="primary-btn" id="newCategory">Nova categoria</button></div>
+        <div class="content-card"><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Slug</th><th>Produtos</th><th>Status</th><th>Ações</th></tr></thead><tbody id="categoriesTable"><tr><td colspan="5" class="empty-cell">Carregando categorias...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-orders">
+        <div class="view-toolbar"><div><h2>Pedidos</h2><p>Consulte pedidos e atualize o andamento.</p></div><select id="orderFilter" class="filter-select"><option value="">Todos os status</option><option value="pending">Pendente</option><option value="paid">Pago</option><option value="processing">Em preparação</option><option value="shipped">Enviado</option><option value="completed">Concluído</option><option value="cancelled">Cancelado</option></select></div>
+        <div class="content-card"><div class="table-wrap"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Pagamento</th><th>Status</th><th>Total</th><th>Ações</th></tr></thead><tbody id="ordersTable"><tr><td colspan="7" class="empty-cell">Carregando pedidos...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-coupons">
+        <div class="view-toolbar"><div><h2>Cupons e promoções</h2><p>Configure códigos e regras comerciais reais.</p></div><button class="primary-btn" id="newCoupon">Novo cupom</button></div>
+        <div class="content-card"><div class="table-wrap"><table><thead><tr><th>Código</th><th>Desconto</th><th>Validade</th><th>Usos</th><th>Status</th><th>Ações</th></tr></thead><tbody id="couponsTable"><tr><td colspan="6" class="empty-cell">Carregando cupons...</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-admins">
+        <div class="view-toolbar"><div><h2>Administradores</h2><p>O proprietário cria usuários no Supabase Auth e concede acesso nesta área.</p></div><div class="permission-hint">Não existe cadastro público de administradores.</div></div>
+        <div class="content-card"><div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Permissão</th><th>Status</th><th>Ações</th></tr></thead><tbody id="adminsTable"><tr><td colspan="5" class="empty-cell">Carregando administradores...</td></tr></tbody></table></div></div>
+        <div class="help-card"><strong>Como adicionar alguém com segurança</strong><ol><li>O proprietário cria o usuário em Authentication, no painel Supabase.</li><li>O proprietário copia o UID do usuário.</li><li>Um administrador autorizado insere o UID, e-mail e papel na tabela <code>admin_users</code>, usando o SQL de configuração documentado.</li></ol><p>Não compartilhe senhas entre pessoas. Cada administrador deve usar seu próprio e-mail e senha.</p></div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="view-toolbar"><div><h2>Configurações da loja</h2><p>Dados comerciais que serão exibidos no site e usados nas integrações.</p></div></div>
+        <form id="settingsForm" class="content-card settings-grid">
+          <label>Nome da loja<input name="store_name" maxlength="100" placeholder="AQ Alta Qualidade"></label>
+          <label>WhatsApp comercial<input name="whatsapp" maxlength="30" placeholder="A configurar pelo proprietário"></label>
+          <label>E-mail de atendimento<input name="support_email" type="email" maxlength="150"></label>
+          <label>Instagram<input name="instagram_url" type="url" maxlength="250" placeholder="https://instagram.com/..."></label>
+          <label>Limite para alerta de estoque<input name="low_stock_threshold" type="number" min="0" max="100000" value="5"></label>
+          <label>Moeda<input value="BRL (Real brasileiro)" disabled></label>
+          <div class="settings-actions"><button class="primary-btn" type="submit">Salvar configurações</button><span id="settingsFeedback" role="status"></span></div>
+        </form>
+        <div class="help-card"><strong>Integrações ainda não ativadas</strong><p>Mercado Pago, cálculo de frete, transportadora, cupons no checkout e confirmação automática de pagamento dependem de contas e credenciais do proprietário. Nenhuma chave privada deve ser inserida no navegador ou no GitHub.</p></div>
+      </section>
+    </section>
+  </div>
+
+  <dialog id="entityDialog" class="entity-dialog"><form id="entityForm" method="dialog"><div class="dialog-head"><div><span class="eyebrow">AQ ALTA QUALIDADE</span><h2 id="dialogTitle">Cadastro</h2></div><button type="button" id="dialogClose" class="dialog-close" aria-label="Fechar">×</button></div><div id="dialogFields" class="dialog-fields"></div><div class="dialog-actions"><button type="button" class="secondary-btn" id="dialogCancel">Cancelar</button><button type="submit" class="primary-btn" id="dialogSave">Salvar</button></div><p id="dialogFeedback" class="dialog-feedback" role="status"></p></form></dialog>
+
+  <script src="admin-config.js"></script>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
