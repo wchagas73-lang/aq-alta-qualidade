@@ -62,13 +62,13 @@ checkoutForm.addEventListener("submit",e=>{
   e.preventDefault();
   if(!checkoutForm.reportValidity())return;
   const data=Object.fromEntries(new FormData(checkoutForm).entries());
-  const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean).join("\\n");
-  document.getElementById("checkoutCustomerSummary").textContent=data.name+"\\n"+data.email+"\\n"+data.phone+"\\n"+address;
+  const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean).join("\n");
+  document.getElementById("checkoutCustomerSummary").textContent=data.name+"\n"+data.email+"\n"+data.phone+"\n"+address;
   const orderLines=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>x.id===id);return p.name+" | "+qty+" x "+money(p.price)+" = "+money(p.price*qty);});
   const subtotal=[...cart.entries()].reduce((sum,[id,qty])=>sum+products.find(p=>p.id===id).price*qty,0);
   orderLines.push("Subtotal: "+money(subtotal));
   orderLines.push("Frete: a calcular após integração");
-  document.getElementById("checkoutOrderSummary").textContent=orderLines.join("\\n");
+  document.getElementById("checkoutOrderSummary").textContent=orderLines.join("\n");
   document.getElementById("customerStep").hidden=true;
   document.getElementById("reviewStep").hidden=false;
   document.getElementById("stepCustomer").classList.remove("active");
