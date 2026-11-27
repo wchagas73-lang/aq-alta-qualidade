@@ -85,9 +85,18 @@ create table if not exists public.products (
   variants jsonb not null default '[]'::jsonb,
   is_active boolean not null default false,
   is_featured boolean not null default false,
+  weight_grams integer check (weight_grams is null or weight_grams > 0),
+  package_length_cm numeric(8,2) check (package_length_cm is null or package_length_cm > 0),
+  package_width_cm numeric(8,2) check (package_width_cm is null or package_width_cm > 0),
+  package_height_cm numeric(8,2) check (package_height_cm is null or package_height_cm > 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
-);
+ );
+
+alter table public.products add column if not exists weight_grams integer check (weight_grams is null or weight_grams > 0);
+alter table public.products add column if not exists package_length_cm numeric(8,2) check (package_length_cm is null or package_length_cm > 0);
+alter table public.products add column if not exists package_width_cm numeric(8,2) check (package_width_cm is null or package_width_cm > 0);
+alter table public.products add column if not exists package_height_cm numeric(8,2) check (package_height_cm is null or package_height_cm > 0);
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
