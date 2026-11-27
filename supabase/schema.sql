@@ -155,12 +155,12 @@ create or replace function public.aq_touch_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   new.updated_at = now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists aq_touch_admin_users on public.admin_users;
 create trigger aq_touch_admin_users before update on public.admin_users for each row execute function public.aq_touch_updated_at();
