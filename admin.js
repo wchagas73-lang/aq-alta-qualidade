@@ -149,7 +149,7 @@ async function loadOrders() {
   if (filter) query = query.eq("order_status", filter);
   const { data, error } = await query;
   if (error) throw error;
-  $("ordersTable").innerHTML = data?.length ? data.map(o => `<tr><td>#${esc(o.order_number)}</td><td>${esc(o.customer_name)}<br><small>${esc(o.customer_email)}</small></td><td>${date(o.created_at)}</td><td>${statusNames[o.payment_status] || esc(o.payment_status)}</td><td><span class="status-pill">${statusNames[o.order_status] || esc(o.order_status)}</span></td><td>${money(o.total)}</td><td><button class="table-action" data-order="${o.id}">Atualizar status</button></td></tr>`).join("") : '<tr><td colspan="7" class="empty-cell">Nenhum pedido encontrado.</td></tr>';
+  $("ordersTable").innerHTML = data?.length ? data.map(o => `<tr><td>#${esc(o.order_number)}</td><td>${esc(o.customer_name)}<br><small>${esc(o.customer_email)}</small></td><td>${date(o.created_at)}</td><td>${statusNames[o.payment_status] || esc(o.payment_status)}</td><td><span class="status-pill">${statusNames[o.order_status] || esc(o.order_status)}</span></td><td>${money(o.total)}</td><td><button class="table-action" data-order-detail="${o.id}">Visualizar</button><button class="table-action" data-order="${o.id}">Status</button></td></tr>`).join("") : '<tr><td colspan="7" class="empty-cell">Nenhum pedido encontrado.</td></tr>';
 }
 async function loadCoupons() {
   const { data, error } = await supabase.from("coupons").select("*").order("created_at", { ascending:false });
@@ -304,6 +304,26 @@ async function updateOrderStatus(id) {
   if (error) throw error;
   openDialog("Atualizar pedido","order",id,selectField("Novo status","order_status",Object.entries(statusNames).filter(([k]) => ["pending","paid","processing","shipped","completed","cancelled"].includes(k)),data.order_status));
 }
+async function showOrderDetails(id) {
+  const [{data:order,error:orderError},{data:items,error:itemsError}] = await Promise.all([
+    supabase.from("orders").select("*").eq("id",id).single(),
+    supabase.from("order_items").select("*").eq("order_id",id)
+  ]);
+  if (orderError) throw orderError;
+  if (itemsError) throw itemsError;
+  const address = order.shipping_address || {};
+  const addressText = Object.values(address).filter(Boolean).join(", ") || "Endereço não informado";
+  const itemRows = (items || []).map(item => '<div class="order-summary-item"><div><strong>' + esc(item.product_name) + '</strong><small>' + item.quantity + ' × ' + money(item.unit_price) + '</small></div><b>' + money(item.line_total) + '</b></div>').join("");
+  openDialog("Pedido #" + order.order_number,"order-detail",id,
+    '<div class="full"><strong>Cliente</strong><p>' + esc(order.customer_name) + '<br>' + esc(order.customer_email) + '<br>' + esc(order.customer_phone) + '</p></div>' +
+    '<div class="full"><strong>Entrega</strong><p>' + esc(addressText) + '</p></div>' +
+    '<div class="full"><strong>Produtos</strong><div class="checkout-summary">' + (itemRows || "Itens não encontrados.") + '</div></div>' +
+    '<div class="full"><strong>Pagamento</strong><p>' + esc(statusNames[order.payment_status] || order.payment_status) + '</p></div>' +
+    '<div class="full"><strong>Status do pedido</strong><p>' + esc(statusNames[order.order_status] || order.order_status) + '</p></div>' +
+    '<div class="full"><strong>Total</strong><p>' + money(order.total) + '</p></div>');
+  $("dialogSave").hidden = true;
+  $("dialogCancel").textContent = "Fechar";
+}
 async function saveOrderStatus(event) {
   event.preventDefault();
   const status = new FormData(form).get("order_status");
@@ -333,7 +353,7 @@ function wireEvents() {
   $("settingsForm").addEventListener("submit", saveSettings);
   $("dialogClose").addEventListener("click", () => dialog.close());
   $("dialogCancel").addEventListener("click", () => dialog.close());
-  form.addEventListener("submit", e => currentEntity === "order" ? saveOrderStatus(e) : saveEntity(e));
+  form.addEventListener("submit", e => { if (currentEntity === "order-detail") { e.preventDefault(); return; } currentEntity === "order" ? saveOrderStatus(e) : saveEntity(e); });
   document.addEventListener("click", async e => {
     const b = e.target.closest("button");
     if (!b) return;
@@ -344,7 +364,7 @@ function wireEvents() {
       if (b.dataset.deleteCategory) await removeRecord("categories",b.dataset.deleteCategory,"categoria",loadCategories);
       if (b.dataset.editCoupon) await couponDialog(b.dataset.editCoupon);
       if (b.dataset.deleteCoupon) await removeRecord("coupons",b.dataset.deleteCoupon,"cupom",loadCoupons);
-      if (b.dataset.order) await updateOrderStatus(b.dataset.order);
+      if (b.dataset.order) await updateOrderStatus(b.dataset.order);\n      if (b.dataset.orderDetail) await showOrderDetails(b.dataset.orderDetail);
     } catch (err) { showNotice(err.message,true); }
   });
 }
