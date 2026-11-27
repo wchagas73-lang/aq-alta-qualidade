@@ -146,7 +146,8 @@ async function loadAQCatalog() {
       stock:Number(p.stock_quantity),image_url:p.image_url || null,images:Array.isArray(p.images)?p.images:[],variants:Array.isArray(p.variants)?p.variants:[]
     }));
     const validIds = new Set(products.map(p => String(p.id)));
-    for (const id of [...cart.keys()]) if (!validIds.has(String(id))) cart.delete(id);
+    // Carrinhos podem armazenar a variante no sufixo "::..."; validar pelo ID base.
+    for (const id of [...cart.keys()]) if (!validIds.has(cartProductId(id))) cart.delete(id);
     for (const id of [...wishlist]) if (!validIds.has(String(id))) wishlist.delete(id);
     if (!products.length) renderProducts();
     else renderProducts();
