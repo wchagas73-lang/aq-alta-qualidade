@@ -131,7 +131,7 @@ async function loadOverview() {
   const canCatalog = roleCan(["catalog"]);
   const [ordersCount, orders, products] = await Promise.all([
     canOrders ? supabase.from("orders").select("id", { count:"exact", head:true }) : Promise.resolve({count:null,error:null}),
-    canOrders ? supabase.from("orders").select("id,order_number,customer_name,created_at,order_status,total").order("created_at", { ascending:false }).limit(8) : Promise.resolve({data:[],error:null}),
+    canOrders ? supabase.from("orders").select("id,order_number,customer_name,created_at,order_status,payment_status,total").order("created_at", { ascending:false }).limit(8) : Promise.resolve({data:[],error:null}),
     canCatalog ? supabase.from("products").select("id,stock_quantity,low_stock_threshold,is_active") : Promise.resolve({data:[],error:null})
   ]);
   if (ordersCount.error) throw ordersCount.error;
@@ -140,7 +140,7 @@ async function loadOverview() {
   const allOrders = orders.data || [];
   const allProducts = products.data || [];
   $("metricOrders").textContent = canOrders ? (ordersCount.count ?? 0) : "Restrito";
-  const revenue = allOrders.filter(o => o.order_status !== "cancelled").reduce((s,o) => s + Number(o.total || 0), 0);
+  const revenue = allOrders.filter(o => o.payment_status === "approved" && o.order_status !== "cancelled").reduce((s,o) => s + Number(o.total || 0), 0);
   $("metricRevenue").textContent = canOrders ? money(revenue) : "Restrito";
   $("metricProducts").textContent = canCatalog ? allProducts.filter(p => p.is_active).length : "Restrito";
   $("metricLowStock").textContent = canCatalog ? allProducts.filter(p => p.is_active && Number(p.stock_quantity) <= Number(p.low_stock_threshold)).length : "Restrito";
