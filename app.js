@@ -40,12 +40,57 @@ function productCardMarkup(p, spotlight = "") {
     <div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span>
     <span class="product-tag ${onSale?"product-tag-sale":p.is_featured?"product-tag-featured":""}">${label}</span>
     ${onSale?`<span class="discount-badge">-${discount}%</span>`:""}
+    ${onSale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?`<div class="promo-countdown" data-countdown="${escapeHTML(p.promo_ends_at)}"><span class="promo-countdown-label">Oferta termina em</span><time>Calculando...</time></div>`:""}
     <button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div>
     <div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3>
     <div class="product-price-line">${onSale?`<del>${money(Number(p.compare_at_price))}</del>`:""}<strong class="product-price ${onSale?"sale-price":""}">${money(Number(p.price)||0)}</strong></div>
     ${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}
     <div class="product-actions"><button class="detail-link" type="button" data-detail="${id}">Ver detalhes</button><button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name}" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></div></article>`;
 }
+function renderHeroCarousel(){
+  const root=document.getElementById("heroSlides");
+  if(!root)return;
+  const slides=products.filter(p=>p.is_hero_featured && p.image_url);
+  if(!slides.length){
+    root.innerHTML=`<article class="hero-slide hero-slide-default is-active">
+      <div class="hero-copy"><span class="eyebrow">AQ ALTA QUALIDADE · JUIZ DE FORA</span><h1>Seu estilo.<br><em>Suas escolhas.</em></h1>
+      <p>Moda, beleza, bem-estar e acessórios reunidos em uma experiência de compra simples e elegante.</p>
+      <div class="hero-actions"><a class="gold-button" href="#destaques">Explorar produtos <span aria-hidden="true">↗</span></a><a class="hero-secondary-link" href="#categorias">Conhecer categorias</a></div></div>
+      <div class="hero-side-note" aria-hidden="true"><span>CURADORIA AQ</span><strong>ALTA<br>QUALIDADE</strong><i></i><small>MODA · BELEZA · BEM-ESTAR</small></div>
+      <div class="hero-bottom"><span>JUIZ DE FORA · MG</span><span>UMA SELEÇÃO PARA O SEU DIA A DIA</span></div></article>`;
+    document.getElementById("heroPrev").hidden=true;document.getElementById("heroNext").hidden=true;document.getElementById("heroDots").hidden=true;return;
+  }
+  root.innerHTML=slides.map((p,index)=>{
+    const name=escapeHTML(p.name),title=escapeHTML(p.hero_title || p.name),description=escapeHTML(p.hero_text || p.description || "Conheça este destaque da Alta Qualidade.");
+    const image=safeImageURL(p.image_url),sale=Number(p.compare_at_price)>Number(p.price);
+    const timer=sale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?'<div class="promo-countdown" data-countdown="'+escapeHTML(p.promo_ends_at)+'"><span class="promo-countdown-label">Oferta termina em</span><time>Calculando...</time></div>':"";
+    return `<article class="hero-slide ${index===0?"is-active":""}" aria-hidden="${index!==0}">
+      <div class="hero-copy"><span class="eyebrow">${sale?"OFERTA ESPECIAL AQ":"SELEÇÃO DA LOJA"}</span><h1>${title}</h1><p>${description}</p>
+      <div class="hero-actions"><a class="gold-button" href="#destaques" data-hero-product="${escapeHTML(p.id)}">Ver produto <span aria-hidden="true">↗</span></a><a class="hero-secondary-link" href="#categorias">Explorar categorias</a></div></div>
+      <img class="hero-slide-product-image" src="${escapeHTML(image)}" alt="${name}" fetchpriority="${index===0?"high":"low"}" loading="${index===0?"eager":"lazy"}">
+      <div class="hero-product-panel"><small>${sale?"OFERTA POR TEMPO LIMITADO":"DESTAQUE AQ"}</small><strong>${name}</strong><b>${money(p.price)}</b>${sale&&p.compare_at_price?'<del>'+money(p.compare_at_price)+'</del>':""}${timer}</div>
+      <div class="hero-bottom"><span>AQ ALTA QUALIDADE · JUIZ DE FORA</span><span>CURADORIA DA LOJA</span></div></article>`;
+  }).join("");
+  const dots=document.getElementById("heroDots");dots.hidden=slides.length<2;
+  dots.innerHTML=slides.map((p,i)=>'<button class="hero-dot" type="button" data-hero-dot="'+i+'" aria-label="Ir para banner '+(i+1)+'" aria-current="'+(i===0)+'"></button>').join("");
+  document.getElementById("heroPrev").hidden=slides.length<2;document.getElementById("heroNext").hidden=slides.length<2;
+  let current=0;const show=next=>{const all=[...root.querySelectorAll(".hero-slide")];current=(next+all.length)%all.length;all.forEach((slide,i)=>{slide.classList.toggle("is-active",i===current);slide.setAttribute("aria-hidden",String(i!==current));});dots.querySelectorAll(".hero-dot").forEach((dot,i)=>dot.setAttribute("aria-current",String(i===current)));};
+  document.getElementById("heroPrev").onclick=()=>show(current-1);document.getElementById("heroNext").onclick=()=>show(current+1);
+  dots.onclick=e=>{const dot=e.target.closest("[data-hero-dot]");if(dot)show(Number(dot.dataset.heroDot));};
+  root.querySelectorAll("[data-hero-product]").forEach(link=>link.addEventListener("click",e=>{e.preventDefault();openProductDetail(link.dataset.heroProduct);}));
+  let startX=null;root.onpointerdown=e=>{startX=e.clientX;};root.onpointerup=e=>{if(startX===null)return;const delta=e.clientX-startX;startX=null;if(Math.abs(delta)>45)show(current+(delta<0?1:-1));};root.onpointercancel=()=>{startX=null;};
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  if(window.aqHeroTimer)clearInterval(window.aqHeroTimer);if(slides.length>1)window.aqHeroTimer=setInterval(()=>show(current+1),7000);
+}
+function updatePromoCountdowns(){
+  const now=Date.now();document.querySelectorAll("[data-countdown]").forEach(node=>{
+    const end=new Date(node.dataset.countdown).getTime(),output=node.querySelector("time");
+    if(!Number.isFinite(end)||end<=now){node.remove();return;}
+    const seconds=Math.floor((end-now)/1000),days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60),secs=seconds%60;
+    if(output)output.textContent=days>0?`${days}d ${String(hours).padStart(2,"0")}h ${String(minutes).padStart(2,"0")}m`:`${String(hours).padStart(2,"0")}h ${String(minutes).padStart(2,"0")}m ${String(secs).padStart(2,"0")}s`;
+  });
+}
+if(!window.aqCountdownTicker)window.aqCountdownTicker=setInterval(updatePromoCountdowns,1000);
 function renderSpotlights(){
   const promotions=products.filter(p=>Number(p.compare_at_price)>Number(p.price));
   const featured=products.filter(p=>p.is_featured);
@@ -58,6 +103,8 @@ function renderProducts(){
   const visible=products.filter(p=>(!showingWishlist||wishlist.has(String(p.id)))&&(activeFilter==="Todos"||p.type===activeFilter)&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
   grid.innerHTML=visible.length?visible.map(p=>productCardMarkup(p)).join(""):showingWishlist?'<div class="catalog-empty"><span class="eyebrow">AQ / FAVORITOS</span><h3>Sua lista está vazia</h3><p>Marque os produtos com o coração para guardá-los nesta lista.</p></div>':'<div class="catalog-empty"><span class="eyebrow">AQ / CATÁLOGO</span><h3>Produtos em preparação</h3><p>Os produtos serão apresentados aqui assim que o catálogo oficial for cadastrado.</p></div>';
   renderSpotlights();
+  renderHeroCarousel();
+  updatePromoCountdowns();
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
@@ -166,14 +213,14 @@ async function loadAQCatalog() {
   try {
     const client = window.supabase.createClient(config.url, config.publishableKey);
     const [{data:items,error:productsError},{data:cats,error:categoriesError}] = await Promise.all([
-      client.from("products").select("id,name,slug,description,sku,price,compare_at_price,stock_quantity,image_url,images,variants,is_featured,is_active,categories(name)").eq("is_active",true).order("created_at",{ascending:false}),
+      client.from("products").select("id,name,slug,description,sku,price,compare_at_price,promo_ends_at,stock_quantity,image_url,images,variants,is_featured,is_hero_featured,hero_title,hero_text,is_active,categories(name)").eq("is_active",true).order("created_at",{ascending:false}),
       client.from("categories").select("id,name,is_active").eq("is_active",true).order("sort_order")
     ]);
     if (productsError) throw productsError;
     if (categoriesError) throw categoriesError;
     realCatalogConnected = true;
     products = (items || []).map(p => ({
-      id:p.id,name:p.name,slug:p.slug,description:p.description || "",sku:p.sku || "",category:p.categories?.name || "Outros",price:Number(p.price),compare_at_price:p.compare_at_price==null?null:Number(p.compare_at_price),
+      id:p.id,name:p.name,slug:p.slug,description:p.description || "",sku:p.sku || "",category:p.categories?.name || "Outros",price:Number(p.price),compare_at_price:p.compare_at_price==null?null:Number(p.compare_at_price),promo_ends_at:p.promo_ends_at || null,hero_title:p.hero_title || "",hero_text:p.hero_text || "",is_hero_featured:Boolean(p.is_hero_featured),
       tag:p.compare_at_price!=null&&Number(p.compare_at_price)>Number(p.price)?"OFERTA":p.is_featured?"DESTAQUE":"AQ",type:p.is_featured?"Destaques":"Novidades",is_featured:Boolean(p.is_featured),
       stock:Number(p.stock_quantity),image_url:p.image_url || null,images:Array.isArray(p.images)?p.images:[],variants:Array.isArray(p.variants)?p.variants:[]
     }));
