@@ -415,3 +415,10 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .demo-video-copy h3{font-size:22px}
 .demo-video-copy p{color:#aaa39a}
 @media(max-width:700px){.demo-campaign-grid{grid-template-columns:1fr}.demo-campaign,.demo-campaign>div{min-height:230px}.demo-video-card{grid-template-columns:1fr}.demo-video-heading{grid-column:1}.demo-video-card video{max-height:260px}.demo-video-copy{padding:20px}}
+
+/* AQ demo hero: mixed product and video campaign slides */
+.hero-slide-video{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.9fr);align-items:center;gap:30px;padding:clamp(30px,6vw,76px);background:radial-gradient(ellipse at 80% 45%,#2c2416 0%,#111 42%,#050505 78%)}
+.hero-slide-video .hero-copy{position:relative;z-index:2;max-width:510px}
+.hero-slide-video-media{width:100%;max-height:390px;aspect-ratio:16/9;object-fit:contain;background:#000;border:1px solid #80683e}
+.hero-slide-video .hero-product-panel{right:clamp(18px,4vw,55px);bottom:clamp(18px,4vw,45px)}
+@media(max-width:760px){.hero-slide-video{grid-template-columns:1fr;padding:34px 22px 110px;gap:18px}.hero-slide-video-media{max-height:250px}.hero-slide-video .hero-product-panel{right:14px;bottom:12px;max-width:220px}}
