@@ -227,7 +227,6 @@ async function productDialog(id = null) {
     '<label class="full">Variações (JSON opcional)<textarea name="variants" placeholder="[{&quot;name&quot;:&quot;Tamanho&quot;,&quot;options&quot;:[&quot;P&quot;,&quot;M&quot;,&quot;G&quot;]}]">' + esc(JSON.stringify(p.variants || [])) + '</textarea></label>' +
     `<label class="full">Descrição<textarea name="description" maxlength="4000">${esc(p.description || "")}</textarea></label>` +
     selectField("Visibilidade","is_active", [["false","Rascunho / oculto"],["true","Publicado"]],String(p.is_active ?? false)) +
-    selectField("Destaque na vitrine","is_featured",[["false","Não"],["true","Sim"]],String(p.is_featured ?? false)) +
     selectField("Mostrar no banner principal","is_hero_featured",[["false","Não"],["true","Sim"]],String(p.is_hero_featured ?? false)) +
     field("Título do banner (opcional)","hero_title","text",p.hero_title || "",'maxlength="100"') +
     field("Texto do banner (opcional)","hero_text","text",p.hero_text || "",'maxlength="220"') +
