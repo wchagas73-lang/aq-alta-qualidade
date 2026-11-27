@@ -67,7 +67,8 @@ checkoutForm.addEventListener("submit",e=>{
   const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean);
   document.getElementById("checkoutCustomerSummary").innerHTML=`<div class="customer-summary-grid"><div><small>Nome</small><strong>${safe(data.name)}</strong></div><div><small>E-mail</small><strong>${safe(data.email)}</strong></div><div><small>Telefone</small><strong>${safe(data.phone)}</strong></div><div class="customer-address"><small>Endereço de entrega</small><strong>${address.map(safe).join("<br>")}</strong></div></div>`;
   const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return null;return {name:p.name,qty,unit:p.price,total:p.price*qty};});
-  const validOrderEntries=orderEntries.filter(Boolean);\n  const subtotal=validOrderEntries.reduce((sum,item)=>sum+item.total,0);
+  const validOrderEntries=orderEntries.filter(Boolean);
+  const subtotal=validOrderEntries.reduce((sum,item)=>sum+item.total,0);
   document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${validOrderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
   document.getElementById("customerStep").hidden=true;
   document.getElementById("reviewStep").hidden=false;
