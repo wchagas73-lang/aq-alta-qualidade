@@ -194,7 +194,7 @@ document.addEventListener("click",e=>{
     const cartId=id+variantKey;
     const totalForProduct=[...cart.entries()].filter(([key])=>cartProductId(key)===id).reduce((sum,[,qty])=>sum+qty,0)+1;
     if(realCatalogConnected&&totalForProduct>Number(product.stock)){notify("Quantidade disponível em estoque atingida.");return;}
-    cart.set(cartId,(cart.get(cartId)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();return;
+    cart.set(cartId,(cart.get(cartId)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");return;
   }
   if(wish){const id=String(wish.dataset.wish);wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
 });
