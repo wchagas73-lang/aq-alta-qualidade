@@ -364,7 +364,8 @@ function wireEvents() {
       if (b.dataset.deleteCategory) await removeRecord("categories",b.dataset.deleteCategory,"categoria",loadCategories);
       if (b.dataset.editCoupon) await couponDialog(b.dataset.editCoupon);
       if (b.dataset.deleteCoupon) await removeRecord("coupons",b.dataset.deleteCoupon,"cupom",loadCoupons);
-      if (b.dataset.order) await updateOrderStatus(b.dataset.order);\n      if (b.dataset.orderDetail) await showOrderDetails(b.dataset.orderDetail);
+      if (b.dataset.order) await updateOrderStatus(b.dataset.order);
+      if (b.dataset.orderDetail) await showOrderDetails(b.dataset.orderDetail);
     } catch (err) { showNotice(err.message,true); }
   });
 }
