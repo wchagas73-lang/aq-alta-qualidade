@@ -730,7 +730,14 @@ html{scroll-behavior:smooth}
 
 
 
-/* AQ: borda dourada uniforme em todas as categorias */
-.category-grid .category-card{
+
+/* AQ: borda dourada uniforme em todos os cards de produtos e ofertas */
+.product-grid .product-card,
+.spotlight-grid .product-card{
   border:1px solid #c9a45c!important;
+  box-shadow:none!important;
+}
+.product-grid .product-card:hover,
+.spotlight-grid .product-card:hover{
+  border-color:#e5cb91!important;
 }
