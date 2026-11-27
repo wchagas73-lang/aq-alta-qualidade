@@ -1,4 +1,4 @@
-const products = [
+let products = [
   {id:1,name:"Conjunto Performance",category:"Moda Fitness",price:129.90,tag:"DESTAQUE",type:"Destaques",symbol:"AQ",stock:5},
   {id:2,name:"Essência Intensa",category:"Perfumes",price:89.90,tag:"NOVIDADE",type:"Novidades",symbol:"✧",stock:4},
   {id:3,name:"Linha Energia",category:"Suplementos",price:99.90,tag:"DESTAQUE",type:"Destaques",symbol:"＋",stock:2},
@@ -14,11 +14,12 @@ const money = value => value.toLocaleString("pt-BR",{style:"currency",currency:"
 const grid = document.getElementById("productGrid");
 const toast = document.getElementById("toast");
 let activeFilter = "Todos";
+let realCatalogConnected = false;
 let searchTerm = "";
 function notify(message){toast.textContent=message;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),2300)}
 function renderProducts(){
   const visible=products.filter(p=>(activeFilter==="Todos"||p.type===activeFilter)&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
-  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">AQ</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(p.id)?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div><span class="stock-alert">Restam só ${p.stock}</span><small>Valor e estoque ilustrativos para demonstração</small><button class="add-cart icon-add" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
+  grid.innerHTML=visible.length?visible.map(p=>`<article class="product-card"><div class="product-image"><span class="product-placeholder">${p.image_url?`<img src="${p.image_url}" alt="${p.name}" loading="lazy">`:"AQ"}</span><span class="product-tag">${p.tag}</span><button class="heart ${wishlist.has(p.id)?"active":""}" data-wish="${p.id}" aria-label="Favoritar ${p.name}"><svg viewBox="0 0 24 24"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${money(p.price)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${p.stock}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
 }
 function renderCart(){
   const count=[...cart.values()].reduce((a,b)=>a+b,0);
@@ -30,13 +31,13 @@ function renderCart(){
 }
 grid.addEventListener("click",e=>{
   const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");
-  if(add){const id=Number(add.dataset.add);cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();}
-  if(wish){const id=Number(wish.dataset.wish);wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
+  if(add){const id=add.dataset.add;cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();}
+  if(wish){const id=wish.dataset.wish;wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
 });
 document.addEventListener("click",e=>{
   const inc=e.target.closest("[data-inc]"),dec=e.target.closest("[data-dec]");
-  if(inc){const id=Number(inc.dataset.inc);cart.set(id,(cart.get(id)||0)+1);renderCart();}
-  if(dec){const id=Number(dec.dataset.dec),n=(cart.get(id)||0)-1;n<=0?cart.delete(id):cart.set(id,n);renderCart();}
+  if(inc){const id=inc.dataset.inc;cart.set(id,(cart.get(id)||0)+1);renderCart();}
+  if(dec){const id=dec.dataset.dec,n=(cart.get(id)||0)-1;n<=0?cart.delete(id):cart.set(id,n);renderCart();}
 });
 document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");activeFilter=btn.dataset.filter;renderProducts()}));
 document.querySelectorAll("[data-category]").forEach(btn=>btn.addEventListener("click",()=>{searchTerm=btn.dataset.category.toLowerCase();document.getElementById("searchInput").value=btn.dataset.category;document.getElementById("searchPanel").classList.add("open");document.getElementById("destaques").scrollIntoView();renderProducts();}));
@@ -87,3 +88,36 @@ document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>do
 document.getElementById("year").textContent=new Date().getFullYear();
 renderProducts();renderCart();
 if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");observer.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll(".section,.benefits,.promo-band,.category-card").forEach(el=>{el.classList.add("reveal");observer.observe(el)})}
+
+async function loadAQCatalog() {
+  const config = window.AQ_SUPABASE_CONFIG || {};
+  if (!config.url || !config.publishableKey || !window.supabase?.createClient) return;
+  try {
+    const client = window.supabase.createClient(config.url, config.publishableKey);
+    const [{data:items,error:productsError},{data:cats,error:categoriesError}] = await Promise.all([
+      client.from("products").select("id,name,category_id,price,stock_quantity,image_url,is_featured,is_active,categories(name)").eq("is_active",true).order("created_at",{ascending:false}),
+      client.from("categories").select("id,name,is_active").eq("is_active",true).order("sort_order")
+    ]);
+    if (productsError) throw productsError;
+    if (categoriesError) throw categoriesError;
+    realCatalogConnected = true;
+    products = (items || []).map(p => ({
+      id:p.id,name:p.name,category:p.categories?.name || "Outros",price:Number(p.price),
+      tag:p.is_featured?"DESTAQUE":"AQ",type:p.is_featured?"Destaques":"Novidades",
+      stock:Number(p.stock_quantity),image_url:p.image_url || null
+    }));
+    if (!products.length) grid.innerHTML = '<p class="empty-cart">Nosso catálogo está sendo atualizado. Em breve, novos produtos estarão disponíveis.</p>';
+    else renderProducts();
+    if (cats?.length) {
+      document.querySelectorAll("[data-category]").forEach(card => {
+        const exists = cats.some(c => c.name === card.dataset.category);
+        card.hidden = !exists;
+      });
+    }
+    renderCart();
+    document.querySelector(".demo-note")?.remove();
+  } catch (error) {
+    console.error("AQ catalog connection:",error);
+  }
+}
+loadAQCatalog();
