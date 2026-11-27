@@ -28,9 +28,9 @@ A chave configurada no navegador deverá ser somente a publishable/anon key, pro
 
 ## Limites atuais
 
-- Produtos, preços e estoques locais são apenas demonstrativos até a conexão com o catálogo real.
+- A vitrine não exibe produtos fictícios. Ela permanece vazia até o cadastro do catálogo real no Supabase do proprietário.
 - Não há fotos oficiais, catálogo comercial, dados legais ou contatos oficiais cadastrados.
-- O checkout apenas coleta dados no navegador e apresenta uma revisão demonstrativa. Não cria pedidos, não reserva estoque e não recebe pagamentos.
+- O checkout permanece desabilitado. Não cria pedidos, não reserva estoque e não recebe pagamentos até a implementação segura das integrações.
 - Mercado Pago, cálculo de frete, transportadora, notificações e domínio próprio ainda não foram configurados.
 - O SQL está preparado, mas precisa ser revisado e executado no projeto Supabase do proprietário antes de qualquer teste integrado.
 
