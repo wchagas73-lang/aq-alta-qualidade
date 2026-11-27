@@ -202,6 +202,8 @@ async function productDialog(id = null) {
     field("Quantidade em estoque","stock_quantity","number",p.stock_quantity ?? 0,'required min="0" step="1"') +
     field("Alerta de estoque baixo","low_stock_threshold","number",p.low_stock_threshold ?? 5,'required min="0" step="1"') +
     field("URL da imagem principal","image_url","url",p.image_url || "",'class="full"') +
+    '<label class="full">Enviar foto do produto (JPG, PNG ou WebP, até 5 MB)<input name="image_file" type="file" accept="image/jpeg,image/png,image/webp"></label>' +
+    '<label class="full">Variações (JSON opcional)<textarea name="variants" placeholder="[{&quot;name&quot;:&quot;Tamanho&quot;,&quot;options&quot;:[&quot;P&quot;,&quot;M&quot;,&quot;G&quot;]}]">' + esc(JSON.stringify(p.variants || [])) + '</textarea></label>' +
     `<label class="full">Descrição<textarea name="description" maxlength="4000">${esc(p.description || "")}</textarea></label>` +
     selectField("Visibilidade","is_active", [["false","Rascunho / oculto"],["true","Publicado"]],String(p.is_active ?? false)) +
     selectField("Destaque na vitrine","is_featured",[["false","Não"],["true","Sim"]],String(p.is_featured ?? false)) +
@@ -250,7 +252,22 @@ async function saveEntity(event) {
     let table, payload;
     if (currentEntity === "product") {
       table = "products";
-      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), image_url:values.image_url || null, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", slug:slugify(values.name) };
+      let imageUrl = values.image_url || null;
+      const imageFile = form.elements.image_file?.files?.[0];
+      if (imageFile) {
+        if (imageFile.size > 5 * 1024 * 1024) throw new Error("A imagem deve ter no máximo 5 MB.");
+        if (!["image/jpeg","image/png","image/webp"].includes(imageFile.type)) throw new Error("Formato de imagem não permitido.");
+        const safeName = imageFile.name.toLowerCase().replace(/[^a-z0-9.-]/g,"-");
+        const path = currentUser.id + "/" + crypto.randomUUID() + "-" + safeName;
+        const { error: uploadError } = await supabase.storage.from("aq-products").upload(path,imageFile,{contentType:imageFile.type,upsert:false});
+        if (uploadError) throw uploadError;
+        imageUrl = supabase.storage.from("aq-products").getPublicUrl(path).data.publicUrl;
+      }
+      let variants = [];
+      try { variants = values.variants ? JSON.parse(values.variants) : []; }
+      catch { throw new Error("O campo de variações precisa conter um JSON válido."); }
+      if (!Array.isArray(variants)) throw new Error("Variações deve ser uma lista JSON.");
+      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), image_url:imageUrl, variants, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", slug:slugify(values.name) };
     } else if (currentEntity === "category") {
       table = "categories";
       payload = { name:values.name.trim(), slug:values.slug.trim(), sort_order:Number(values.sort_order || 0), is_active:values.is_active === "true" };
