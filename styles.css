@@ -664,3 +664,19 @@ html{scroll-behavior:smooth}
   text-shadow:0 1px 5px #000,0 1px 2px #000!important;
 }
 .product-image .heart.active{color:#ff5470!important}
+
+
+/* AQ: selos de oferta com alto contraste, mantendo a foto visível */
+.product-image .product-tag-sale,
+.product-image .product-tag{
+  color:#ffd45e!important;
+  font-weight:900!important;
+  text-shadow:0 2px 3px #000,0 0 8px #000,1px 1px 1px #000!important;
+  letter-spacing:.8px!important;
+}
+.product-image .discount-badge{
+  color:#ff6655!important;
+  font-weight:900!important;
+  font-size:12px!important;
+  text-shadow:0 2px 3px #000,0 0 8px #000,1px 1px 1px #000!important;
+}
