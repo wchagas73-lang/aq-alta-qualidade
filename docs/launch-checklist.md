@@ -10,6 +10,7 @@ Este documento separa o que já está preparado no repositório do que depende d
 - Painel administrativo com login Supabase Auth.
 - Controle de acesso por papéis: owner, manager, catalog e orders.
 - Cadastro e edição de produtos, categorias e cupons.
+- Campos opcionais de peso e dimensões por produto para preparar a integração de frete.
 - Upload de imagem para o bucket `aq-products`.
 - Consulta e atualização de pedidos no painel.
 - Estrutura SQL inicial com RLS e funções administrativas em schema privado.
@@ -35,7 +36,8 @@ Para cada produto:
 - Preço atual e, se aplicável, preço anterior verdadeiro.
 - SKU, se utilizado.
 - Estoque inicial.
-- Tamanhos, cores e demais variações, incluindo disponibilidade por variação se a loja precisar controlar estoque individual.
+- Peso em gramas e dimensões da embalagem em centímetros, necessários para cotação de frete.
+- Tamanhos, cores e demais variações. O estoque atual é controlado no nível do produto, não individualmente por tamanho/cor; se o proprietário precisar de estoque por variante, isso deve ser definido antes de importar o catálogo.
 - Fotos oficiais e autorização de uso.
 - Definição de publicado ou rascunho.
 
@@ -92,6 +94,7 @@ Access Token e segredo de webhook devem ser cadastrados como variáveis secretas
 - Busca, categorias, variações, carrinho e quantidades.
 - Preço e estoque revalidados no servidor.
 - Cupom válido, expirado, inativo, limite de uso e pedido mínimo.
+- Persistência local com dados antigos ou corrompidos sem travar a vitrine.
 - CEP válido, CEP não atendido, frete e prazo.
 - Pagamento aprovado, recusado, cancelado, expirado e reembolsado em ambiente de teste.
 - Webhook duplicado ou fora de ordem sem duplicar pedido ou baixar estoque incorretamente.
