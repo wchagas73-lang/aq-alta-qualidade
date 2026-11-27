@@ -207,7 +207,7 @@ async function productDialog(id = null) {
     `<label class="full">Descrição<textarea name="description" maxlength="4000">${esc(p.description || "")}</textarea></label>` +
     selectField("Visibilidade","is_active", [["false","Rascunho / oculto"],["true","Publicado"]],String(p.is_active ?? false)) +
     selectField("Destaque na vitrine","is_featured",[["false","Não"],["true","Sim"]],String(p.is_featured ?? false)) +
-    '<p class="full data-note">Use uma URL pública de imagem por enquanto. Upload direto ao Storage será habilitado quando o projeto do proprietário estiver conectado.</p>');
+    '<p class="full data-note">As imagens podem ser informadas por URL pública ou enviadas ao bucket aq-products do Supabase do proprietário.</p>');
 }
 async function loadCategoryOptions() {
   const { data, error } = await supabase.from("categories").select("id,name,slug,is_active").order("name");
