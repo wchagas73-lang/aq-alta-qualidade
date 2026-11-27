@@ -11,6 +11,8 @@ let products = [
 const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]").map(([id,qty])=>[String(id),qty]));
 const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]").map(String));
 const money = value => value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const cartProductId = key => String(key).split("::")[0];
+const cartVariantLabel = key => {try{return JSON.parse(decodeURIComponent(String(key).split("::")[1]||"{}"));}catch{return {};}};
 const grid = document.getElementById("productGrid");
 const toast = document.getElementById("toast");
 let activeFilter = "Todos";
@@ -39,8 +41,8 @@ function renderCart(){
   document.getElementById("cartCount").textContent=count;
   document.getElementById("wishCount").textContent=wishlist.size;
   const lines=[...cart.entries()];
-  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return "";const safeId=escapeHTML(id);return `<div class="cart-line"><div><strong>${escapeHTML(p.name)}</strong><small>${money(Number(p.price)||0)} cada</small></div><div class="qty-controls"><button data-dec="${safeId}" aria-label="Diminuir quantidade de ${escapeHTML(p.name)}">−</button><span>${qty}</span><button data-inc="${safeId}" aria-label="Aumentar quantidade de ${escapeHTML(p.name)}">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
-  const subtotal=lines.reduce((sum,[id,qty])=>{const p=products.find(x=>String(x.id)===String(id));return sum+(p?p.price*qty:0)},0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
+  document.getElementById("cartItems").innerHTML=lines.length?lines.map(([id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));if(!p)return "";const safeId=escapeHTML(id);const chosen=cartVariantLabel(id);const chosenText=Object.entries(chosen).map(([k,v])=>`${k}: ${v}`).join(" · ");return `<div class="cart-line"><div><strong>${escapeHTML(p.name)}</strong><small>${chosenText?escapeHTML(chosenText)+" · ":""}${money(Number(p.price)||0)} cada</small></div><div class="qty-controls"><button data-dec="${safeId}" aria-label="Diminuir quantidade de ${escapeHTML(p.name)}">−</button><span>${qty}</span><button data-inc="${safeId}" aria-label="Aumentar quantidade de ${escapeHTML(p.name)}">+</button></div></div>`}).join(""):'<p class="empty-cart">Seu carrinho está vazio.</p>';
+  const subtotal=lines.reduce((sum,[id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));return sum+(p?p.price*qty:0)},0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
 grid.addEventListener("click",e=>{
   const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");const detail=e.target.closest("[data-detail]");const card=e.target.closest("[data-product-open]");
@@ -51,7 +53,7 @@ grid.addEventListener("click",e=>{
 });
 document.addEventListener("click",e=>{
   const inc=e.target.closest("[data-inc]"),dec=e.target.closest("[data-dec]");
-  if(inc){const id=inc.dataset.inc;const product=products.find(p=>String(p.id)===String(id));const next=(cart.get(id)||0)+1;if(realCatalogConnected&&product&&next>product.stock){notify("Quantidade disponível em estoque atingida.");return;}cart.set(id,next);renderCart();}
+  if(inc){const id=inc.dataset.inc;const product=products.find(p=>String(p.id)===cartProductId(id));const next=(cart.get(id)||0)+1;if(realCatalogConnected&&product&&next>product.stock){notify("Quantidade disponível em estoque atingida.");return;}cart.set(id,next);renderCart();}
   if(dec){const id=dec.dataset.dec,n=(cart.get(id)||0)-1;n<=0?cart.delete(id):cart.set(id,n);renderCart();}
 });
 document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");activeFilter=btn.dataset.filter;renderProducts()}));
@@ -81,10 +83,10 @@ checkoutForm.addEventListener("submit",e=>{
   const safe=value=>String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const address=[data.street+", "+data.number,data.complement,data.district,data.city+" / "+data.state,"CEP: "+data.postalCode].filter(Boolean);
   document.getElementById("checkoutCustomerSummary").innerHTML=`<div class="customer-summary-grid"><div><small>Nome</small><strong>${safe(data.name)}</strong></div><div><small>E-mail</small><strong>${safe(data.email)}</strong></div><div><small>Telefone</small><strong>${safe(data.phone)}</strong></div><div class="customer-address"><small>Endereço de entrega</small><strong>${address.map(safe).join("<br>")}</strong></div></div>`;
-  const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return null;return {name:p.name,qty,unit:p.price,total:p.price*qty};});
+  const orderEntries=[...cart.entries()].map(([id,qty])=>{const p=products.find(x=>String(x.id)===cartProductId(id));if(!p)return null;const chosen=cartVariantLabel(id);return {name:p.name,variant:Object.entries(chosen).map(([k,v])=>`${k}: ${v}`).join(" · "),qty,unit:p.price,total:p.price*qty};});
   const validOrderEntries=orderEntries.filter(Boolean);
   const subtotal=validOrderEntries.reduce((sum,item)=>sum+item.total,0);
-  document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${validOrderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
+  document.getElementById("checkoutOrderSummary").innerHTML=`<div class="order-summary-list">${validOrderEntries.map(item=>`<div class="order-summary-item"><div><strong>${safe(item.name)}</strong><small>${item.variant?escapeHTML(item.variant)+" · ":""}${item.qty} unidade(s) × ${money(item.unit)}</small></div><b>${money(item.total)}</b></div>`).join("")}</div><div class="order-summary-totals"><div><span>Subtotal dos produtos</span><strong>${money(subtotal)}</strong></div><div><span>Entrega</span><small>A calcular após integração</small></div></div>`;
   document.getElementById("customerStep").hidden=true;
   document.getElementById("reviewStep").hidden=false;
   document.getElementById("stepCustomer").classList.remove("active");
@@ -124,8 +126,10 @@ function openProductDetail(id,updateUrl=true){
     const group=document.createElement("div");group.className="detail-variant-group";
     const heading=document.createElement("strong");heading.textContent=String(variant.name||"Opções");
     const values=document.createElement("div");values.className="detail-variant-options";
-    (Array.isArray(variant.options)?variant.options:[]).forEach(option=>{const chip=document.createElement("span");chip.textContent=String(option);values.appendChild(chip);});
-    group.append(heading,values);variantBox.appendChild(group);
+    const select=document.createElement("select");select.className="detail-variant-select";select.dataset.variantName=String(variant.name||"Opções");
+    const prompt=document.createElement("option");prompt.value="";prompt.textContent="Selecione";prompt.selected=true;select.appendChild(prompt);
+    (Array.isArray(variant.options)?variant.options:[]).forEach(option=>{const choice=document.createElement("option");choice.value=String(option);choice.textContent=String(option);select.appendChild(choice);});
+    values.appendChild(select);group.append(heading,values);variantBox.appendChild(group);
   });
   variantBox.hidden=!variantBox.childElementCount;
   const gallery=document.getElementById("detailGallery");gallery.replaceChildren();
@@ -145,8 +149,12 @@ detailOverlay.addEventListener("click",e=>{if(e.target===detailOverlay)closeProd
 document.getElementById("detailAdd").addEventListener("click",()=>{
   if(!activeDetailProduct)return;
   if(realCatalogConnected&&activeDetailProduct.stock<=0){notify("Produto indisponível no momento.");return;}
-  const id=String(activeDetailProduct.id),next=(cart.get(id)||0)+1;
-  if(realCatalogConnected&&next>activeDetailProduct.stock){notify("Quantidade disponível em estoque atingida.");return;}
+  const selections={};let incomplete=false;
+  document.querySelectorAll("#detailVariants select").forEach(select=>{if(!select.value)incomplete=true;else selections[select.dataset.variantName]=select.value;});
+  if(incomplete){notify("Selecione todas as opções do produto.");return;}
+  const baseId=String(activeDetailProduct.id),variantKey=Object.keys(selections).length?"::"+encodeURIComponent(JSON.stringify(selections)):"",id=baseId+variantKey,next=(cart.get(id)||0)+1;
+  const totalForProduct=[...cart.entries()].filter(([key])=>cartProductId(key)===baseId).reduce((sum,[,qty])=>sum+qty,0)+1;
+  if(realCatalogConnected&&totalForProduct>activeDetailProduct.stock){notify("Quantidade disponível em estoque atingida.");return;}
   cart.set(id,next);renderCart();closeProductDetail();notify("Produto adicionado ao carrinho.");openCart();
 });
 window.addEventListener("popstate",()=>{
