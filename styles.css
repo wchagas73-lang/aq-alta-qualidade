@@ -50,3 +50,13 @@ body{background:#000;color:#f5f1e8}
 .product-image .quick-add{display:none!important}
 .stock-alert{display:inline-block;margin-top:10px;padding:5px 8px;background:#3a170f;border:1px solid #a94f2d;color:#ffb18d;font-size:10px;font-weight:700;letter-spacing:.3px}
 .add-cart{font-size:10px;letter-spacing:.6px}
+
+/* Ícones de ação da vitrine AQ */
+.add-cart.icon-add{width:42px;height:42px;margin-top:13px;padding:0;display:grid;place-items:center;border:1px solid #c9a45c;border-radius:50%;background:#080808;color:#e5cb91;transition:background .2s,color .2s,transform .2s}
+.add-cart.icon-add svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.add-cart.icon-add:hover{background:#c9a45c;color:#080808;transform:scale(1.06)}
+.heart{display:grid;place-items:center;width:32px;height:32px;padding:7px;border:1px solid #c9a45c66;border-radius:50%;background:#080808e8;color:#fff;transition:color .2s,background .2s,transform .2s}
+.heart svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.heart.active{color:#ef3340;background:#fff}
+.heart.active svg path{fill:#ef3340;stroke:#ef3340}
+.heart:active{transform:scale(.9)}
