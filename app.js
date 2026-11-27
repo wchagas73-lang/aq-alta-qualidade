@@ -112,9 +112,27 @@ async function loadAQCatalog() {
     if (!products.length) grid.innerHTML = '<p class="empty-cart">Nosso catálogo está sendo atualizado. Em breve, novos produtos estarão disponíveis.</p>';
     else renderProducts();
     if (cats?.length) {
+      const categoryGrid = document.querySelector(".category-grid");
       document.querySelectorAll("[data-category]").forEach(card => {
         const exists = cats.some(c => c.name === card.dataset.category);
         card.hidden = !exists;
+      });
+      cats.filter(c => ![...document.querySelectorAll("[data-category]")].some(card => card.dataset.category === c.name)).forEach((c,i) => {
+        const card = document.createElement("button");
+        card.className = "category-card";
+        card.dataset.category = c.name;
+        const label = document.createElement("span"); label.textContent = "AQ / CATEGORIA";
+        const title = document.createElement("strong"); title.textContent = c.name;
+        const arrow = document.createElement("i"); arrow.textContent = "↗";
+        card.append(label,title,arrow);
+        card.addEventListener("click", () => {
+          searchTerm = c.name.toLowerCase();
+          document.getElementById("searchInput").value = c.name;
+          document.getElementById("searchPanel").classList.add("open");
+          document.getElementById("destaques").scrollIntoView();
+          renderProducts();
+        });
+        categoryGrid.appendChild(card);
       });
     }
     renderCart();
