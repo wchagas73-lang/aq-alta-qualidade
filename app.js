@@ -31,7 +31,7 @@ function renderProducts(){
   grid.innerHTML=visible.length?visible.map(p=>{
     const id=escapeHTML(p.id),name=escapeHTML(p.name),category=escapeHTML(p.category),tag=escapeHTML(p.tag);
     const image=safeImageURL(p.image_url);
-    return `<article class="product-card"><div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span><span class="product-tag">${tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3><div class="product-price">${money(Number(p.price)||0)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name} ao carrinho" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></article>`;
+    return `<article class="product-card" data-product-open="${id}"><div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span><span class="product-tag">${tag}</span><button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div><div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3><div class="product-price">${money(Number(p.price)||0)}</div>${realCatalogConnected?`<span class="stock-alert">${p.stock>0?`Em estoque: ${Number(p.stock)}`:"Indisponível"}</span>`:`<span class="stock-alert">Demonstração</span><small>Valor e estoque ilustrativos para demonstração</small>`}<div class="product-actions"><button class="detail-link" type="button" data-detail="${id}">Ver detalhes</button><button class="add-cart icon-add" ${realCatalogConnected&&p.stock<=0?"disabled":""} data-add="${id}" aria-label="Adicionar ${name}" title="Adicionar ao carrinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button></div></div></article>`
   }).join(""):'<p class="empty-cart">Nenhum item encontrado. Tente outra busca.</p>';
 }
 function renderCart(){
@@ -43,7 +43,9 @@ function renderCart(){
   const subtotal=lines.reduce((sum,[id,qty])=>{const p=products.find(x=>String(x.id)===String(id));return sum+(p?p.price*qty:0)},0);document.getElementById("cartSubtotal").textContent=money(subtotal);localStorage.setItem("aq-cart",JSON.stringify([...cart]));localStorage.setItem("aq-wishlist",JSON.stringify([...wishlist]));
 }
 grid.addEventListener("click",e=>{
-  const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");
+  const add=e.target.closest("[data-add]");const wish=e.target.closest("[data-wish]");const detail=e.target.closest("[data-detail]");const card=e.target.closest("[data-product-open]");
+  if(detail){openProductDetail(detail.dataset.detail);return;}
+  if(card&&!add&&!wish){openProductDetail(card.dataset.productOpen);return;}
   if(add){const id=add.dataset.add;const product=products.find(p=>String(p.id)===String(id));if(realCatalogConnected&&(!product||product.stock<=0)){notify("Produto indisponível no momento.");return;}cart.set(id,(cart.get(id)||0)+1);renderCart();notify("Produto adicionado ao carrinho.");openCart();}
   if(wish){const id=wish.dataset.wish;wishlist.has(id)?wishlist.delete(id):wishlist.add(id);renderProducts();renderCart();}
 });
@@ -99,6 +101,60 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&checkoutOverlay.cla
 document.getElementById("wishlistToggle").addEventListener("click",()=>{activeFilter="Todos";searchTerm="";renderProducts();document.getElementById("destaques").scrollIntoView({behavior:"smooth"});notify(wishlist.size?wishlist.size+" produto(s) favoritado(s).":"Sua lista de favoritos está vazia.")});
 document.getElementById("menuToggle").addEventListener("click",()=>{const nav=document.getElementById("mainNav");nav.classList.toggle("open");document.getElementById("menuToggle").setAttribute("aria-expanded",nav.classList.contains("open"))});
 document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("mainNav").classList.remove("open")));
+
+const detailOverlay=document.getElementById("productDetailOverlay");
+let activeDetailProduct=null;
+function openProductDetail(id,updateUrl=true){
+  const product=products.find(p=>String(p.id)===String(id));
+  if(!product)return;
+  activeDetailProduct=product;
+  const slug=product.slug || String(product.name||"produto").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  if(updateUrl){const url=new URL(window.location.href);url.searchParams.set("produto",slug);history.pushState({aqProduct:slug},"",url);}
+  document.getElementById("detailCategory").textContent=product.category||"AQ ALTA QUALIDADE";
+  document.getElementById("detailName").textContent=product.name;
+  document.getElementById("detailPrice").textContent=money(Number(product.price)||0);
+  const compare=document.getElementById("detailCompare");
+  compare.hidden=!(product.compare_at_price>product.price);
+  compare.textContent=compare.hidden?"":money(product.compare_at_price);
+  document.getElementById("detailStock").textContent=realCatalogConnected?(product.stock>0?("Disponibilidade: "+product.stock+" unidade(s)"):"Produto indisponível"):"Produto demonstrativo. Estoque não confirmado.";
+  document.getElementById("detailDescription").textContent=product.description || (realCatalogConnected?"Descrição não informada pelo cadastro.":"Descrição oficial será adicionada quando o catálogo real for cadastrado.");
+  const variantBox=document.getElementById("detailVariants");variantBox.replaceChildren();
+  (product.variants||[]).forEach(variant=>{
+    if(!variant||typeof variant!=="object")return;
+    const group=document.createElement("div");group.className="detail-variant-group";
+    const heading=document.createElement("strong");heading.textContent=String(variant.name||"Opções");
+    const values=document.createElement("div");values.className="detail-variant-options";
+    (Array.isArray(variant.options)?variant.options:[]).forEach(option=>{const chip=document.createElement("span");chip.textContent=String(option);values.appendChild(chip);});
+    group.append(heading,values);variantBox.appendChild(group);
+  });
+  variantBox.hidden=!variantBox.childElementCount;
+  const gallery=document.getElementById("detailGallery");gallery.replaceChildren();
+  const imageUrls=[product.image_url,...(product.images||[]).map(item=>typeof item==="string"?item:item?.url)].map(safeImageURL).filter(Boolean);
+  if(imageUrls.length){imageUrls.forEach((src,index)=>{const img=document.createElement("img");img.src=src;img.alt=product.name+" imagem "+(index+1);img.loading=index?"lazy":"eager";gallery.appendChild(img);});}
+  else{const placeholder=document.createElement("div");placeholder.className="detail-placeholder";placeholder.textContent="AQ";gallery.appendChild(placeholder);}
+  document.getElementById("detailAdd").disabled=realCatalogConnected&&product.stock<=0;
+  document.getElementById("detailDemo").hidden=realCatalogConnected;
+  detailOverlay.classList.add("open");detailOverlay.setAttribute("aria-hidden","false");document.body.classList.add("detail-open");
+}
+function closeProductDetail(updateUrl=true){
+  detailOverlay.classList.remove("open");detailOverlay.setAttribute("aria-hidden","true");document.body.classList.remove("detail-open");activeDetailProduct=null;
+  if(updateUrl&&new URL(window.location.href).searchParams.has("produto")){const url=new URL(window.location.href);url.searchParams.delete("produto");history.pushState({},"",url);}
+}
+document.getElementById("detailClose").addEventListener("click",()=>closeProductDetail());
+detailOverlay.addEventListener("click",e=>{if(e.target===detailOverlay)closeProductDetail();});
+document.getElementById("detailAdd").addEventListener("click",()=>{
+  if(!activeDetailProduct)return;
+  if(realCatalogConnected&&activeDetailProduct.stock<=0){notify("Produto indisponível no momento.");return;}
+  const id=String(activeDetailProduct.id),next=(cart.get(id)||0)+1;
+  if(realCatalogConnected&&next>activeDetailProduct.stock){notify("Quantidade disponível em estoque atingida.");return;}
+  cart.set(id,next);renderCart();closeProductDetail();notify("Produto adicionado ao carrinho.");openCart();
+});
+window.addEventListener("popstate",()=>{
+  const slug=new URL(window.location.href).searchParams.get("produto");
+  if(!slug){if(detailOverlay.classList.contains("open"))closeProductDetail(false);return;}
+  const product=products.find(p=>(p.slug||"")===slug);if(product)openProductDetail(product.id,false);
+});
+
 document.getElementById("year").textContent=new Date().getFullYear();
 renderProducts();renderCart();
 if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");observer.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll(".section,.benefits,.promo-band,.category-card").forEach(el=>{el.classList.add("reveal");observer.observe(el)})}
@@ -109,16 +165,16 @@ async function loadAQCatalog() {
   try {
     const client = window.supabase.createClient(config.url, config.publishableKey);
     const [{data:items,error:productsError},{data:cats,error:categoriesError}] = await Promise.all([
-      client.from("products").select("id,name,category_id,price,stock_quantity,image_url,is_featured,is_active,categories(name)").eq("is_active",true).order("created_at",{ascending:false}),
+      client.from("products").select("id,name,slug,description,sku,price,compare_at_price,stock_quantity,image_url,images,variants,is_featured,is_active,categories(name)").eq("is_active",true).order("created_at",{ascending:false}),
       client.from("categories").select("id,name,is_active").eq("is_active",true).order("sort_order")
     ]);
     if (productsError) throw productsError;
     if (categoriesError) throw categoriesError;
     realCatalogConnected = true;
     products = (items || []).map(p => ({
-      id:p.id,name:p.name,category:p.categories?.name || "Outros",price:Number(p.price),
+      id:p.id,name:p.name,slug:p.slug,description:p.description || "",sku:p.sku || "",category:p.categories?.name || "Outros",price:Number(p.price),compare_at_price:p.compare_at_price==null?null:Number(p.compare_at_price),
       tag:p.is_featured?"DESTAQUE":"AQ",type:p.is_featured?"Destaques":"Novidades",
-      stock:Number(p.stock_quantity),image_url:p.image_url || null
+      stock:Number(p.stock_quantity),image_url:p.image_url || null,images:Array.isArray(p.images)?p.images:[],variants:Array.isArray(p.variants)?p.variants:[]
     }));
     const validIds = new Set(products.map(p => String(p.id)));
     for (const id of [...cart.keys()]) if (!validIds.has(String(id))) cart.delete(id);
@@ -151,8 +207,14 @@ async function loadAQCatalog() {
     }
     renderCart();
     document.querySelector(".demo-note")?.remove();
+    window.dispatchEvent(new Event("aq:catalog-ready"));
   } catch (error) {
     console.error("AQ catalog connection:",error);
   }
 }
 loadAQCatalog();
+const requestedProduct=new URL(window.location.href).searchParams.get("produto");
+if(requestedProduct){
+  const openRequested=()=>{const product=products.find(p=>(p.slug||"")===requestedProduct);if(product)openProductDetail(product.id,false);};
+  openRequested();window.addEventListener("aq:catalog-ready",openRequested,{once:true});
+}
