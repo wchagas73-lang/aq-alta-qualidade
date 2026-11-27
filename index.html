@@ -35,18 +35,21 @@
   </header>
   <section class="search-panel" id="searchPanel"><input id="searchInput" type="search" placeholder="O que você está procurando?"><button id="searchClear">Fechar</button></section>
   <main>
-    <section class="hero" id="inicio">
-      <div class="hero-copy">
-        <span class="eyebrow">AQ ALTA QUALIDADE · JUIZ DE FORA</span>
-        <h1>Seu estilo.<br><em>Suas escolhas.</em></h1>
-        <p>Moda, beleza, bem-estar e acessórios reunidos em uma experiência de compra simples e elegante.</p>
-        <div class="hero-actions">
-          <a class="gold-button" href="#destaques">Explorar produtos <span aria-hidden="true">↗</span></a>
-          <a class="hero-secondary-link" href="#categorias">Conhecer categorias</a>
-        </div>
+    <section class="hero hero-carousel" id="inicio" aria-label="Destaques da loja">
+      <div class="hero-slides" id="heroSlides" aria-live="polite">
+        <article class="hero-slide hero-slide-default is-active">
+          <div class="hero-copy"><span class="eyebrow">AQ ALTA QUALIDADE · JUIZ DE FORA</span>
+            <h1>Seu estilo.<br><em>Suas escolhas.</em></h1>
+            <p>Moda, beleza, bem-estar e acessórios reunidos em uma experiência de compra simples e elegante.</p>
+            <div class="hero-actions"><a class="gold-button" href="#destaques">Explorar produtos <span aria-hidden="true">↗</span></a><a class="hero-secondary-link" href="#categorias">Conhecer categorias</a></div>
+          </div>
+          <div class="hero-side-note" aria-hidden="true"><span>CURADORIA AQ</span><strong>ALTA<br>QUALIDADE</strong><i></i><small>MODA · BELEZA · BEM-ESTAR</small></div>
+          <div class="hero-bottom"><span>JUIZ DE FORA · MG</span><span>UMA SELEÇÃO PARA O SEU DIA A DIA</span></div>
+        </article>
       </div>
-      <div class="hero-side-note" aria-hidden="true"><span>CURADORIA AQ</span><strong>ALTA<br>QUALIDADE</strong><i></i><small>MODA · BELEZA · BEM-ESTAR</small></div>
-      <div class="hero-bottom"><span>JUIZ DE FORA · MG</span><span>UMA SELEÇÃO PARA O SEU DIA A DIA</span></div>
+      <button class="hero-arrow hero-prev" id="heroPrev" type="button" aria-label="Banner anterior" hidden>‹</button>
+      <button class="hero-arrow hero-next" id="heroNext" type="button" aria-label="Próximo banner" hidden>›</button>
+      <div class="hero-dots" id="heroDots" aria-label="Selecionar banner" hidden></div>
     </section>
     <section class="section categories-section" id="categorias">
       <div class="section-heading"><div><span class="eyebrow">CATÁLOGO</span><h2>Categorias</h2></div></div>
