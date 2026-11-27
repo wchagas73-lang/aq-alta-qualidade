@@ -36,7 +36,7 @@ grid.addEventListener("click",e=>{
 });
 document.addEventListener("click",e=>{
   const inc=e.target.closest("[data-inc]"),dec=e.target.closest("[data-dec]");
-  if(inc){const id=inc.dataset.inc;cart.set(id,(cart.get(id)||0)+1);renderCart();}
+  if(inc){const id=inc.dataset.inc;const product=products.find(p=>String(p.id)===String(id));const next=(cart.get(id)||0)+1;if(realCatalogConnected&&product&&next>product.stock){notify("Quantidade disponível em estoque atingida.");return;}cart.set(id,next);renderCart();}
   if(dec){const id=dec.dataset.dec,n=(cart.get(id)||0)-1;n<=0?cart.delete(id):cart.set(id,n);renderCart();}
 });
 document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");activeFilter=btn.dataset.filter;renderProducts()}));
