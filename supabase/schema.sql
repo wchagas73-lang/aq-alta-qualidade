@@ -144,6 +144,44 @@ create index if not exists orders_created_idx on public.orders(created_at desc);
 create index if not exists orders_status_idx on public.orders(order_status);
 create index if not exists order_items_order_idx on public.order_items(order_id);
 
+-- Atualiza updated_at automaticamente em alterações.
+create or replace function public.aq_touch_updated_at()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  new.updated_at = now();
+  return new;
+end;
+$;
+
+drop trigger if exists aq_touch_admin_users on public.admin_users;
+create trigger aq_touch_admin_users before update on public.admin_users for each row execute function public.aq_touch_updated_at();
+drop trigger if exists aq_touch_categories on public.categories;
+create trigger aq_touch_categories before update on public.categories for each row execute function public.aq_touch_updated_at();
+drop trigger if exists aq_touch_products on public.products;
+create trigger aq_touch_products before update on public.products for each row execute function public.aq_touch_updated_at();
+drop trigger if exists aq_touch_orders on public.orders;
+create trigger aq_touch_orders before update on public.orders for each row execute function public.aq_touch_updated_at();
+drop trigger if exists aq_touch_coupons on public.coupons;
+create trigger aq_touch_coupons before update on public.coupons for each row execute function public.aq_touch_updated_at();
+
+-- Categorias iniciais definidas para a loja, sem produtos ou preços fictícios.
+insert into public.categories (name,slug,sort_order,is_active) values
+  ('Moda Fitness','moda-fitness',1,true),
+  ('Suplementos','suplementos',2,true),
+  ('Perfumes','perfumes',3,true),
+  ('Moda Casual e Social','moda-casual-social',4,true),
+  ('Acessórios','acessorios',5,true),
+  ('Bem-estar','bem-estar',6,true)
+on conflict (slug) do nothing;
+
+insert into public.store_settings (key,value) values
+  ('store_name','"AQ Alta Qualidade"'::jsonb),
+  ('low_stock_threshold','5'::jsonb)
+on conflict (key) do nothing;
+
 alter table public.admin_users enable row level security;
 alter table public.categories enable row level security;
 alter table public.products enable row level security;
