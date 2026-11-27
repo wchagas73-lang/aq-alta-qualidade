@@ -44,10 +44,10 @@ function productCardMarkup(p, spotlight = "") {
   const image=safeImageURL(p.image_url);
   const onSale=Number(p.compare_at_price)>Number(p.price);
   const discount=onSale?Math.round((1-(Number(p.price)/Number(p.compare_at_price)))*100):0;
-  const label=spotlight==="promo"?"OFERTA":spotlight==="featured"?"ESCOLHA AQ":onSale?"OFERTA":p.is_featured?"DESTAQUE":"AQ";
-  return `<article class="product-card ${spotlight==="promo"?"product-card-promo":spotlight==="featured"?"product-card-featured":""}" data-product-open="${id}">
+  const label=onSale?"OFERTA":"AQ";
+  return `<article class="product-card ${spotlight==="promo"?"product-card-promo":""}" data-product-open="${id}">
     <div class="product-image"><span class="product-placeholder">${image?`<img src="${escapeHTML(image)}" alt="${name}" loading="lazy" decoding="async">`:"AQ"}</span>
-    <span class="product-tag ${onSale?"product-tag-sale":p.is_featured?"product-tag-featured":""}">${label}</span>
+    <span class="product-tag ${onSale?"product-tag-sale":""}">${label}</span>
     ${onSale?`<span class="discount-badge">-${discount}%</span>`:""}
     <button class="heart ${wishlist.has(String(p.id))?"active":""}" data-wish="${id}" aria-label="Favoritar ${name}" aria-pressed="${wishlist.has(String(p.id))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg></button></div>
     <div class="product-info"><span class="product-category">${category}</span><h3>${name}</h3>
@@ -69,27 +69,58 @@ function renderHeroCarousel(){
       <div class="hero-bottom"><span>JUIZ DE FORA · MG</span><span>UMA SELEÇÃO PARA O SEU DIA A DIA</span></div></article>`;
     document.getElementById("heroPrev").hidden=true;document.getElementById("heroNext").hidden=true;document.getElementById("heroDots").hidden=true;return;
   }
+  const mediaMarkup=(p,index)=>{
+    const url=safeImageURL(p.image_url),isVideo=/\.(mp4|webm|ogv|ogg)(?:[?#]|$)/i.test(String(p.image_url||""));
+    if(isVideo){
+      const ext=(String(p.image_url).match(/\.(mp4|webm|ogv|ogg)(?:[?#]|$)/i)||[])[1]?.toLowerCase();
+      const mime=ext==="webm"?"video/webm":ext==="ogv"||ext==="ogg"?"video/ogg":"video/mp4";
+      return {isVideo:true,markup:`<video class="hero-slide-product-image hero-slide-banner-video" muted playsinline autoplay preload="metadata" aria-label="${escapeHTML(p.name)}"><source src="${escapeHTML(url)}" type="${mime}"></video>`};
+    }
+    return {isVideo:false,markup:`<img class="hero-slide-product-image" src="${escapeHTML(url)}" alt="${escapeHTML(p.name)}" fetchpriority="${index===0?"high":"low"}" loading="${index===0?"eager":"lazy"}">`};
+  };
   root.innerHTML=slides.map((p,index)=>{
-    const name=escapeHTML(p.name),description=escapeHTML(p.hero_text || p.description || "Destaque da loja.");
-    const image=safeImageURL(p.image_url),sale=Number(p.compare_at_price)>Number(p.price);
+    const name=escapeHTML(p.name),description=escapeHTML(p.hero_text || p.description || "Conheça este produto da Alta Qualidade JF.");
+    const sale=Number(p.compare_at_price)>Number(p.price),media=mediaMarkup(p,index);
     const timer=sale&&p.promo_ends_at&&new Date(p.promo_ends_at).getTime()>Date.now()?'<div class="promo-countdown" data-countdown="'+escapeHTML(p.promo_ends_at)+'"><span class="promo-countdown-label">Termina em</span><time>Calculando...</time></div>':"";
-    return `<article class="hero-slide hero-slide-product ${index===0?"is-active":""}" aria-hidden="${index!==0}">
-      <img class="hero-slide-product-image" src="${escapeHTML(image)}" alt="${name}" fetchpriority="${index===0?"high":"low"}" loading="${index===0?"eager":"lazy"}">
-      <div class="hero-media-label">${sale?"OFERTA AQ":"DESTAQUE AQ"}</div>
+    return `<article class="hero-slide hero-slide-product ${media.isVideo?"hero-slide-video":"hero-slide-image"} ${index===0?"is-active":""}" aria-hidden="${index!==0}">
+      ${media.markup}
+      <div class="hero-media-label">${sale?"OFERTA AQ":"ALTA QUALIDADE"}</div>
       <div class="hero-product-panel"><strong>${name}</strong><small class="hero-product-description">${description}</small><div class="hero-media-price">${sale&&p.compare_at_price?'<del>'+money(p.compare_at_price)+'</del>':""}<b>${money(p.price)}</b></div>${timer}<a href="#destaques" data-hero-product="${escapeHTML(p.id)}">Ver produto ↗</a></div>
-      <div class="hero-bottom"><span>AQ ALTA QUALIDADE</span><span>CURADORIA DA LOJA</span></div></article>`;
-  }).join("")+(realCatalogConnected?"":`<article class="hero-slide hero-slide-video" aria-hidden="true"><video class="hero-slide-video-media" controls playsinline preload="none" poster="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=82"><source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">Seu navegador não consegue reproduzir este vídeo.</video><div class="hero-media-label">VÍDEO EM DESTAQUE</div><div class="hero-product-panel"><strong>Conjunto Fitness Essential</strong><small class="hero-product-description">Oferta demonstrativa da vitrine AQ.</small><div class="hero-media-price"><del>R$ 229,90</del><b>R$ 189,90</b></div><a href="#ofertas">Ver promoções ↗</a></div><div class="hero-bottom"><span>AQ ALTA QUALIDADE</span><span>VÍDEO ILUSTRATIVO</span></div></article>`);
-  const totalSlides=slides.length+(realCatalogConnected?0:1);
-  const dots=document.getElementById("heroDots");dots.hidden=totalSlides<2;
+      <div class="hero-bottom"><span>AQ ALTA QUALIDADE</span><span>${media.isVideo?"VÍDEO":"VITRINE DA LOJA"}</span></div></article>`;
+  }).join("")+(realCatalogConnected?"":`<article class="hero-slide hero-slide-video" aria-hidden="true"><video class="hero-slide-product-image hero-slide-banner-video" muted playsinline autoplay preload="metadata" poster="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=82"><source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">Seu navegador não consegue reproduzir este vídeo.</video><div class="hero-media-label">VÍDEO ILUSTRATIVO</div><div class="hero-product-panel"><strong>Conjunto Fitness Essential</strong><small class="hero-product-description">Oferta demonstrativa da vitrine AQ.</small><div class="hero-media-price"><del>R$ 229,90</del><b>R$ 189,90</b></div><a href="#ofertas">Ver promoções ↗</a></div><div class="hero-bottom"><span>AQ ALTA QUALIDADE</span><span>VÍDEO</span></div></article>`);
+  const dots=document.getElementById("heroDots"),allSlides=[...root.querySelectorAll(".hero-slide")],totalSlides=allSlides.length;
+  dots.hidden=totalSlides<2;
   dots.innerHTML=Array.from({length:totalSlides},(_,i)=>'<button class="hero-dot" type="button" data-hero-dot="'+i+'" aria-label="Ir para banner '+(i+1)+'" aria-current="'+(i===0)+'"></button>').join("");
   document.getElementById("heroPrev").hidden=totalSlides<2;document.getElementById("heroNext").hidden=totalSlides<2;
-  let current=0;const show=next=>{const all=[...root.querySelectorAll(".hero-slide")];current=(next+all.length)%all.length;all.forEach((slide,i)=>{slide.classList.toggle("is-active",i===current);slide.setAttribute("aria-hidden",String(i!==current));});dots.querySelectorAll(".hero-dot").forEach((dot,i)=>dot.setAttribute("aria-current",String(i===current)));};
-  document.getElementById("heroPrev").onclick=()=>show(current-1);document.getElementById("heroNext").onclick=()=>show(current+1);
+  let current=0,timer=null;
+  const clearTimer=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  const stopVideo=slide=>{const video=slide?.querySelector("video");if(video){video.pause();try{video.currentTime=0;}catch{}}};
+  const scheduleCurrent=()=>{
+    clearTimer();
+    const active=allSlides[current],video=active?.querySelector("video");
+    if(video){
+      video.onended=()=>{if(allSlides[current]===active)show(current+1);};
+      video.onerror=()=>{if(allSlides[current]===active)show(current+1);};
+      const play=video.play();
+      if(play&&typeof play.catch==="function")play.catch(()=>{});
+    }else if(active?.querySelector("img")){
+      timer=setTimeout(()=>show(current+1),7000);
+    }
+  };
+  function show(next){
+    clearTimer();
+    stopVideo(allSlides[current]);
+    current=(next+totalSlides)%totalSlides;
+    allSlides.forEach((slide,i)=>{slide.classList.toggle("is-active",i===current);slide.setAttribute("aria-hidden",String(i!==current));});
+    dots.querySelectorAll(".hero-dot").forEach((dot,i)=>dot.setAttribute("aria-current",String(i===current)));
+    scheduleCurrent();
+  }
+  document.getElementById("heroPrev").onclick=()=>show(current-1);
+  document.getElementById("heroNext").onclick=()=>show(current+1);
   dots.onclick=e=>{const dot=e.target.closest("[data-hero-dot]");if(dot)show(Number(dot.dataset.heroDot));};
   root.querySelectorAll("[data-hero-product]").forEach(link=>link.addEventListener("click",e=>{e.preventDefault();openProductDetail(link.dataset.heroProduct);}));
   let startX=null;root.onpointerdown=e=>{startX=e.clientX;};root.onpointerup=e=>{if(startX===null)return;const delta=e.clientX-startX;startX=null;if(Math.abs(delta)>45)show(current+(delta<0?1:-1));};root.onpointercancel=()=>{startX=null;};
-  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-  if(window.aqHeroTimer)clearInterval(window.aqHeroTimer);if(slides.length>1)window.aqHeroTimer=setInterval(()=>show(current+1),7000);
+  scheduleCurrent();
 }
 function updatePromoCountdowns(){
   const now=Date.now();document.querySelectorAll("[data-countdown]").forEach(node=>{
@@ -102,11 +133,8 @@ function updatePromoCountdowns(){
 if(!window.aqCountdownTicker)window.aqCountdownTicker=setInterval(updatePromoCountdowns,1000);
 function renderSpotlights(){
   const promotions=products.filter(p=>Number(p.compare_at_price)>Number(p.price));
-  const featured=products.filter(p=>p.is_featured);
   const offersSection=document.getElementById("ofertas");
-  const featuredSection=document.getElementById("escolhas-aq");
   if(offersSection){offersSection.hidden=!promotions.length;document.getElementById("promotionGrid").innerHTML=promotions.map(p=>productCardMarkup(p,"promo")).join("");}
-  if(featuredSection){featuredSection.hidden=!featured.length;document.getElementById("featuredGrid").innerHTML=featured.map(p=>productCardMarkup(p,"featured")).join("");}
 }
 function renderProducts(){
   const visible=products.filter(p=>(!showingWishlist||wishlist.has(String(p.id)))&&(activeFilter==="Todos"||(activeFilter==="Promoções"?Number(p.compare_at_price)>Number(p.price):p.type===activeFilter))&&(!searchTerm||[p.name,p.category].join(" ").toLowerCase().includes(searchTerm)));
