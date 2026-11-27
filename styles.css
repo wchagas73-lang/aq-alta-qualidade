@@ -43,3 +43,10 @@ body{background:#000;color:#f5f1e8}
 .hero-logo-watermark{width:230px;height:270px;object-fit:contain;opacity:.13}
 .about-symbol img{width:75%;height:80%;object-fit:contain}
 @media(max-width:620px){.brand-logo{width:82px;height:62px}.hero-logo-watermark{width:180px;height:210px}}
+
+/* Ajustes solicitados: botão único, carrinho único e aviso de estoque */
+.cart-btn span{display:none}
+.cart-btn{gap:0;padding:10px 12px}
+.product-image .quick-add{display:none!important}
+.stock-alert{display:inline-block;margin-top:10px;padding:5px 8px;background:#3a170f;border:1px solid #a94f2d;color:#ffb18d;font-size:10px;font-weight:700;letter-spacing:.3px}
+.add-cart{font-size:10px;letter-spacing:.6px}
