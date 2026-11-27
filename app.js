@@ -1,6 +1,16 @@
 let products = [];
-const cart = new Map(JSON.parse(localStorage.getItem("aq-cart")||"[]").filter(([id])=>!/^\\d+$/.test(String(id))).map(([id,qty])=>[String(id),qty]));
-const wishlist = new Set(JSON.parse(localStorage.getItem("aq-wishlist")||"[]").filter(id=>!/^\\d+$/.test(String(id))).map(String));
+function readStoredArray(key){
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
+}
+const cart = new Map(readStoredArray("aq-cart")
+  .filter(entry => Array.isArray(entry) && entry.length === 2 && !/^\\d+$/.test(String(entry[0])) && Number.isInteger(Number(entry[1])) && Number(entry[1]) > 0)
+  .map(([id,qty]) => [String(id),Number(qty)]));
+const wishlist = new Set(readStoredArray("aq-wishlist")
+  .filter(id => !/^\\d+$/.test(String(id)) && (typeof id === "string" || typeof id === "number"))
+  .map(String));
 const money = value => value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const cartProductId = key => String(key).split("::")[0];
 const cartVariantLabel = key => {try{return JSON.parse(decodeURIComponent(String(key).split("::")[1]||"{}"));}catch{return {};}};
