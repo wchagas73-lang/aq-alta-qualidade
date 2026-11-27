@@ -680,3 +680,11 @@ html{scroll-behavior:smooth}
   font-size:12px!important;
   text-shadow:0 2px 3px #000,0 0 8px #000,1px 1px 1px #000!important;
 }
+
+
+/* AQ: oferta e desconto na mesma cor de destaque */
+.product-image .product-tag-sale,
+.product-image .product-tag,
+.product-image .discount-badge{
+  color:#ff6655!important;
+}
