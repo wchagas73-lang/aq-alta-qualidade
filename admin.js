@@ -205,6 +205,10 @@ async function productDialog(id = null) {
     field("Preço anterior (opcional)","compare_at_price","number",p.compare_at_price ?? "",'min="0" step="0.01"') +
     field("Quantidade em estoque","stock_quantity","number",p.stock_quantity ?? 0,'required min="0" step="1"') +
     field("Alerta de estoque baixo","low_stock_threshold","number",p.low_stock_threshold ?? 5,'required min="0" step="1"') +
+    field("Peso para frete (gramas)","weight_grams","number",p.weight_grams ?? "",'min="1" step="1"') +
+    field("Comprimento da embalagem (cm)","package_length_cm","number",p.package_length_cm ?? "",'min="0.1" step="0.1"') +
+    field("Largura da embalagem (cm)","package_width_cm","number",p.package_width_cm ?? "",'min="0.1" step="0.1"') +
+    field("Altura da embalagem (cm)","package_height_cm","number",p.package_height_cm ?? "",'min="0.1" step="0.1"') +
     field("URL da imagem principal","image_url","url",p.image_url || "",'class="full"') +
     '<label class="full">Enviar foto do produto (JPG, PNG ou WebP, até 5 MB)<input name="image_file" type="file" accept="image/jpeg,image/png,image/webp"></label>' +
     '<label class="full">Variações (JSON opcional)<textarea name="variants" placeholder="[{&quot;name&quot;:&quot;Tamanho&quot;,&quot;options&quot;:[&quot;P&quot;,&quot;M&quot;,&quot;G&quot;]}]">' + esc(JSON.stringify(p.variants || [])) + '</textarea></label>' +
@@ -240,13 +244,13 @@ async function couponDialog(id = null) {
   }
   openDialog(id ? "Editar cupom" : "Novo cupom", "coupon", id,
     field("Código","code","text",c.code || "",'required maxlength="40"') +
-    selectField("Tipo de desconto",[["percentage","Percentual"],["fixed","Valor fixo"]],c.discount_type || "percentage") +
+    selectField("Tipo de desconto","discount_type",[["percentage","Percentual"],["fixed","Valor fixo"]],c.discount_type || "percentage") +
     field("Valor do desconto","discount_value","number",c.discount_value ?? "",'required min="0.01" step="0.01"') +
     field("Pedido mínimo (R$)","minimum_subtotal","number",c.minimum_subtotal ?? 0,'min="0" step="0.01"') +
     field("Limite de usos","max_uses","number",c.max_uses ?? "",'min="0" step="1" placeholder="Sem limite"') +
     field("Início","starts_at","datetime-local",c.starts_at ? c.starts_at.slice(0,16) : "") +
     field("Validade","expires_at","datetime-local",c.expires_at ? c.expires_at.slice(0,16) : "") +
-    selectField("Status",[["false","Inativo"],["true","Ativo"]],String(c.is_active ?? false)));
+    selectField("Status","is_active",[["false","Inativo"],["true","Ativo"]],String(c.is_active ?? false)));
 }
 async function saveEntity(event) {
   event.preventDefault();
@@ -271,7 +275,7 @@ async function saveEntity(event) {
       try { variants = values.variants ? JSON.parse(values.variants) : []; }
       catch { throw new Error("O campo de variações precisa conter um JSON válido."); }
       if (!Array.isArray(variants)) throw new Error("Variações deve ser uma lista JSON.");
-      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), image_url:imageUrl, variants, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", slug:slugify(values.name) };
+      payload = { name:values.name.trim(), sku:values.sku.trim() || null, category_id:values.category_id || null, price:Number(values.price), compare_at_price:values.compare_at_price === "" ? null : Number(values.compare_at_price), stock_quantity:Number(values.stock_quantity), low_stock_threshold:Number(values.low_stock_threshold), weight_grams:values.weight_grams === "" ? null : Number(values.weight_grams), package_length_cm:values.package_length_cm === "" ? null : Number(values.package_length_cm), package_width_cm:values.package_width_cm === "" ? null : Number(values.package_width_cm), package_height_cm:values.package_height_cm === "" ? null : Number(values.package_height_cm), image_url:imageUrl, variants, description:values.description || null, is_active:values.is_active === "true", is_featured:values.is_featured === "true", slug:slugify(values.name) };
     } else if (currentEntity === "category") {
       table = "categories";
       payload = { name:values.name.trim(), slug:values.slug.trim(), sort_order:Number(values.sort_order || 0), is_active:values.is_active === "true" };
