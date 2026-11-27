@@ -46,7 +46,8 @@ set search_path = ''
 as $$
   select exists (
     select 1 from public.admin_users a
-    where a.user_id = (select auth.uid())
+    where (select auth.uid()) is not null
+      and a.user_id = (select auth.uid())
       and a.is_active = true
       and (a.role = 'owner' or a.role = any(allowed_roles))
   );
